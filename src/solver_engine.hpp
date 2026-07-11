@@ -27,6 +27,9 @@ public:
     // Chạy các thuật toán để lấy 1 bước gợi ý
     HintResult GetNextHint();
     
+    // In ra các đề xuất của một ô cụ thể (dùng để debug)
+    // void PrintCellCandidates(int r, int c) const; 
+
     // Giải toàn bộ 
     void SolveFull();
 };

@@ -38,6 +38,8 @@ void SolverEngine::PropagateConstraints(int row, int col, int value) {
 
 // Điền một số vào bảng (sau khi điền cần gọi PropagateConstraints để xóa các đề xuất liên quan)
 bool SolverEngine::PlaceValue(int row, int col, int value) {
+    if (value <= 0) return false;
+    if (row < 0 || row >= 9 || col < 0 || col >= 9) return false;
     if (grid.cells[row][col].value != 0) return false;
 
     grid.cells[row][col].value = value;
@@ -83,30 +85,56 @@ void SolverEngine::PrintGrid() const {
 HintResult SolverEngine::GetNextHint() {
     HintResult result;
 
-    // Cấp 1: Tìm ô chỉ còn duy nhất 1 đề xuất
     result = FindNakedSingle(grid);
     if (result.found) return result;
 
-    // Cấp 1: Tìm số chỉ có thể đứng ở 1 ô trong hàng/cột/block
     result = FindHiddenSingle(grid);
     if (result.found) return result;
 
-    // TODO: Các cấp cao hơn (Naked Pairs, X-Wing) sẽ được gọi ở đây
+    // Cấp 2: Nhóm Lộ diện
+    result = FindNakedPairs(grid);
+    if (result.found) return result;
 
-    return result; // Trả về false nếu bế tắc
+    result = FindNakedTriples(grid);
+    if (result.found) return result;
+
+    result = FindNakedQuads(grid);
+    if (result.found) return result;
+
+    return result; 
 }
+
+// // Hàm in ra các đề xuất của một ô cụ thể (dùng để debug)
+// void SolverEngine::PrintCellCandidates(int r, int c) const {
+//     std::cout << "O (" << r << "," << c << ") co cac de xuat: ";
+//     for (int i = 1; i <= 9; ++i) {
+//         if (grid.cells[r][c].candidates[i]) {
+//             std::cout << i << " ";
+//         }
+//     }
+//     std::cout << " (Tong cong: " << grid.cells[r][c].candidateCount << ")\n";
+// }
 
 // Giải toàn bộ
 void SolverEngine::SolveFull() {
+    // PrintCellCandidates(0, 1);
+    // PrintCellCandidates(0, 5);
     while (grid.emptyCount > 0) {
         HintResult hint = GetNextHint();
+        // PrintCellCandidates(0, 1);
+        // PrintCellCandidates(0, 5);
         if (hint.found) {
             std::cout << "[" << hint.strategyName << "] " << hint.explanation << "\n";
-            PlaceValue(hint.row, hint.col, hint.value);
+            if (hint.value > 0) {
+                PlaceValue(hint.row, hint.col, hint.value);
+            } else {
+                std::cout << "   -> Hint loai bo de xuat, khong dien so.\n";
+            }
         } else {
-            std::cout << "Bế tắc! Cần thêm thuật toán nâng cao.\n";
+            std::cout << "Be tac! Can them thuat toan nang cao.\n";
             break;
         }
     }
     PrintGrid();
 }
+
