@@ -17,19 +17,7 @@ Hệ thống được thiết kế theo dạng đường ống (Pipeline) chia l
 
 ## 📁 Cấu trúc Thư mục Dự án
 
-```text
-Sudoku-Solver-Project/
-├── README.md              # Giới thiệu và luồng làm việc hàng ngày
-├── SETUP.md               # Hướng dẫn cài đặt môi trường chi tiết
-├── requirements.txt       # Quản lý thư viện Python
-├── CMakeLists.txt         # Quản lý biên dịch C++ (CMake)
-├── src/                   # Lõi thuật toán C++
-│   ├── main.cpp           # File chạy test độc lập C++
-│   └── solver.cpp         # Định nghĩa các thuật toán giải logic
-└── app/                   # Ứng dụng Python (UI & Computer Vision)
-    └── main.py            # Giao diện và luồng xử lý ảnh chính
-```
-
+Chi tiết tại file `structure.txt`
 ---
 
 ## ⚙️ Hướng dẫn cài đặt ban đầu
