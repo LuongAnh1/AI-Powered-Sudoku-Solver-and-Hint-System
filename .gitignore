@@ -1,0 +1,91 @@
+# ====================================================================
+# Môi trường ảo Python (Virtual Environments)
+# ====================================================================
+venv/
+.venv/
+env/
+/env/
+/venv/
+/ENV/
+
+# Thư mục cache của Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Thư mục phân phối và đóng gói Python (nếu có)
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ====================================================================
+# Thư mục biên dịch C++ & Cấu hình CMake
+# ====================================================================
+# Thư mục build chính của CMake (bắt buộc phải bỏ qua)
+build/
+Build/
+
+# Các file sinh ra bởi hệ thống cấu hình CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeSystem.cmake
+cmake_install.cmake
+Makefile
+targets
+*.cmake
+
+# ====================================================================
+# Các file thực thi và Thư viện đã biên dịch (Binaries & Libraries)
+# ====================================================================
+# File thực thi độc lập
+*.exe
+*.out
+*.app
+sudoku_test
+
+# File đối tượng biên dịch trung gian
+*.o
+*.obj
+
+# Thư viện liên kết tĩnh và động (C/C++ & Python C-Extensions)
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.pyd
+
+# ====================================================================
+# Cấu hình của các IDE và Editor (VS Code, PyCharm, CLion...)
+# ====================================================================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# ====================================================================
+# File rác sinh ra bởi Hệ điều hành (OS generated files)
+# ====================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

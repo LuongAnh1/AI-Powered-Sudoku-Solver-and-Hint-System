@@ -1,0 +1,11 @@
+# pip install -r requirements.txt
+
+# Thư viện xử lý ảnh và thị giác máy tính
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Thư viện để cầu nối gọi C++ từ Python (rất quan trọng)
+pybind11>=2.11.0
+
+# Thư viện làm giao diện (bạn có thể chọn PyQt5 hoặc CustomTkinter)
+customtkinter>=5.2.0

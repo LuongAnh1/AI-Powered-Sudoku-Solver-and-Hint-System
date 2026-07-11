@@ -1,0 +1,32 @@
+```code
+Sudoku-Solver-Project/
+├── .gitignore                      # Cấu hình các file và thư mục bỏ qua không đẩy lên Git
+├── CMakeLists.txt                  # Cấu hình biên dịch mã nguồn C++ (CMake)
+├── requirements.txt                # Quản lý các thư viện Python (OpenCV, Pybind11...)
+├── README.md                       # Tài liệu giới thiệu dự án & Luồng làm việc hàng ngày
+├── SETUP.md                        # Tài liệu hướng dẫn cài đặt compiler & môi trường ban đầu
+├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án)
+├── app/                            # Thư mục chứa ứng dụng Python (Giao diện & Xử lý ảnh)
+│   └── main.py                     # File chạy chính của ứng dụng Python (UI & OpenCV)
+└── src/                            # THƯ MỤC CHỨA LÕI THUẬT TOÁN (C++ ENGINE)
+    ├── types.hpp                   # Định nghĩa các kiểu dữ liệu logic (Cell, Grid, HintResult)
+    ├── solver_engine.hpp           # Khai báo bộ chạy điều phối chính (Waterfall Orchestrator)
+    ├── solver_engine.cpp           # Định nghĩa bộ chạy chính (Điều phối các thuật toán)
+    ├── strategies/                 # Thư mục chứa các nhóm thuật toán logic (Tách module)
+    │   ├── strategy_manager.hpp    # Khai báo chung các hàm thuật toán để Engine gọi
+    │   ├── basic_strategies.cpp    # Cấp 1: Singles, Pairs, Triples, Quads
+    │   ├── intersection_strategies.cpp # Cấp 2: Pointing, Box/Line Reduction
+    │   ├── fish_strategies.cpp     # Cấp 3: X-Wing, Swordfish, Jellyfish
+    │   └── wing_strategies.cpp     # Cấp 4: XY-Wing, XYZ-Wing
+    └── tests/                      # Thư mục chứa hệ thống kiểm thử tự động (Test Cases)
+        ├── test_runner.cpp         # Hàm main() chạy kiểm thử độc lập C++ (Console App)
+        ├── unit/                   # Thư mục chứa các bài kiểm thử đơn vị (Unit Tests)
+        │   ├── test_basic.cpp      # Test riêng lẻ các thuật toán Cấp 1
+        │   └── test_intersection.cpp # Test riêng lẻ các thuật toán Cấp 2
+        └── integration/            # Thư mục chứa các bài kiểm thử tích hợp (Integration Tests)
+            ├── test_engine.cpp     # Đọc đề bài mẫu, cho Engine giải và đối chiếu kết quả
+            └── test_cases/         # Thư mục chứa các file đề bài mẫu dạng văn bản (.txt)
+                ├── easy_01.txt     # Đề bài mẫu cấp độ Dễ
+                ├── medium_01.txt   # Đề bài mẫu cấp độ Trung bình
+                └── hard_01.txt     # Đề bài mẫu cấp độ Khó
+```
