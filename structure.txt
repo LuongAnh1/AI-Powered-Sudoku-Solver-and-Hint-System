@@ -1,5 +1,5 @@
 ```code
-Sudoku-Solver-Project/
+Ahihi/
 ├── .gitignore                      # Cấu hình các file và thư mục bỏ qua không đẩy lên Git
 ├── CMakeLists.txt                  # Cấu hình biên dịch mã nguồn C++ (CMake)
 ├── requirements.txt                # Quản lý các thư viện Python (OpenCV, Pybind11...)
