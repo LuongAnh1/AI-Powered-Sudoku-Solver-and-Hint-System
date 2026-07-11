@@ -18,6 +18,7 @@ Hệ thống được thiết kế theo dạng đường ống (Pipeline) chia l
 ## 📁 Cấu trúc Thư mục Dự án
 
 Chi tiết tại file `structure.txt`
+
 ---
 
 ## ⚙️ Hướng dẫn cài đặt ban đầu
