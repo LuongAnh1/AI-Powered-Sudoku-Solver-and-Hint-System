@@ -82,25 +82,50 @@ void SolverEngine::PrintGrid() const {
 //======================== HÀM GỢI Ý BƯỚC TIẾP THEO VÀ GIẢI TOÁN BỘ =========================
 // Vòng lặp gợi ý theo mô hình "Thác nước" (Waterfall Model) - Chưa có thuật toán nâng cao, chỉ dùng các thuật toán cơ bản
 // Cần chỉnh sửa về sau 
+//======================== HÀM GỢI Ý BƯỚC TIẾP THEO VÀ GIẢI TOÁN BỘ =========================
+// Vòng lặp gợi ý theo mô hình "Thác nước" (Waterfall Model)
 HintResult SolverEngine::GetNextHint() {
     HintResult result;
 
+    //======================== CÁC THUẬT TOÁN GỢI Ý CƠ BẢN =========================
+
+    // -----------------------------------------------------------
+    // CẤP 1: CÁC THUẬT TOÁN ĐIỀN SỐ CHẮC CHẮN (SINGLES)
+    // -----------------------------------------------------------
     result = FindNakedSingle(grid);
     if (result.found) return result;
 
     result = FindHiddenSingle(grid);
     if (result.found) return result;
 
-    // Cấp 2: Nhóm Lộ diện
+    // -----------------------------------------------------------
+    // CẤP 2: CÁC THUẬT TOÁN LOẠI TRỪ 2 Ô / 2 SỐ (PAIRS)
+    // -----------------------------------------------------------
     result = FindNakedPairs(grid);
     if (result.found) return result;
 
+    result = FindHiddenPairs(grid); 
+    if (result.found) return result;
+
+    // -----------------------------------------------------------
+    // CẤP 3: CÁC THUẬT TOÁN LOẠI TRỪ 3 Ô / 3 SỐ (TRIPLES)
+    // -----------------------------------------------------------
     result = FindNakedTriples(grid);
     if (result.found) return result;
 
+    result = FindHiddenTriples(grid); 
+    if (result.found) return result;
+
+    // -----------------------------------------------------------
+    // CẤP 4: CÁC THUẬT TOÁN LOẠI TRỪ 4 Ô / 4 SỐ (QUADS)
+    // -----------------------------------------------------------
     result = FindNakedQuads(grid);
     if (result.found) return result;
 
+    result = FindHiddenQuads(grid); 
+    if (result.found) return result;
+
+    // Trả về false nếu không thuật toán nào tìm ra bước đi mới
     return result; 
 }
 

@@ -99,7 +99,9 @@ namespace {
         return count;
     }
 
-    // Hàm tổng quát tìm Naked Subset (N = 2, 3, hoặc 4)
+    // ========================================================================
+    // TÌM NAKED SUBSETS (N = 2, 3, hoặc 4)
+    // ========================================================================
     HintResult FindNakedSubset(SudokuGrid& grid, int N, const std::string& strategyName) {
         // regionType: 0 = Hàng, 1 = Cột, 2 = Block 3x3
         for (int regionType = 0; regionType < 3; ++regionType) {
@@ -209,7 +211,130 @@ namespace {
         }
         return HintResult{}; // Không tìm thấy
     }
+
+    // ========================================================================
+    // TÌM HIDDEN SUBSETS (N = 2, 3, hoặc 4)
+    // ========================================================================
+    HintResult FindHiddenSubset(SudokuGrid& grid, int N, const std::string& strategyName) {
+        // Duyệt qua 27 vùng: 9 Hàng (0), 9 Cột (1), 9 Block (2)
+        for (int regionType = 0; regionType < 3; ++regionType) {
+            for (int regionIdx = 0; regionIdx < 9; ++regionIdx) {
+                
+                // Mảng lưu vị trí các ô (bitmask 9 bit) cho từng chữ số (1-9)
+                // Ví dụ: candPositions[3] = 000100010 (nhị phân) nghĩa là số 3 có thể nằm ở ô thứ 1 và 5 trong vùng
+                int candPositions[10] = {0}; 
+                
+                // Mảng ánh xạ từ index cục bộ (0-8) ra tọa độ toàn cục (row, col)
+                std::pair<int, int> cellCoords[9]; 
+
+                // 1. Quét vùng để lập bản đồ phân bố ứng viên
+                for (int i = 0; i < 9; ++i) {
+                    int r, c;
+                    if (regionType == 0) { r = regionIdx; c = i; }
+                    else if (regionType == 1) { r = i; c = regionIdx; }
+                    else { r = (regionIdx / 3) * 3 + (i / 3); c = (regionIdx % 3) * 3 + (i % 3); }
+
+                    cellCoords[i] = {r, c};
+
+                    if (grid.cells[r][c].value == 0) {
+                        for (int v = 1; v <= 9; ++v) {
+                            if (grid.cells[r][c].candidates[v]) {
+                                candPositions[v] |= (1 << i); // Bật bit thứ i
+                            }
+                        }
+                    }
+                }
+
+                // 2. Duyệt mọi tổ hợp chập N của 9 chữ số (Dùng bitmask từ bit 1 đến bit 9)
+                // digitMask chạy từ 2 (0000000010) đến 1023 (1111111110)
+                for (int digitMask = 2; digitMask < (1 << 10); digitMask += 2) {
+                    if (countBits(digitMask) == N) { // Chỉ xét các tổ hợp chọn đúng N chữ số
+                        
+                        int positionUnion = 0; // Hợp của tất cả vị trí các chữ số này
+                        bool validCombination = true;
+
+                        for (int v = 1; v <= 9; ++v) {
+                            if ((digitMask >> v) & 1) {
+                                // Nếu chữ số này không xuất hiện ở bất kỳ ô nào trong vùng, bỏ qua
+                                if (candPositions[v] == 0) {
+                                    validCombination = false;
+                                    break;
+                                }
+                                positionUnion |= candPositions[v];
+                            }
+                        }
+
+                        if (!validCombination) continue;
+
+                        // 3. ĐIỀU KIỆN CỐT LÕI: N chữ số này chỉ nằm gói gọn trong đúng N ô
+                        if (countBits(positionUnion) == N) {
+                            
+                            bool hasEliminated = false;
+                            std::vector<std::pair<int, int>> subsetCells;
+
+                            // 4. Thực hiện dọn dẹp: Xóa các ứng viên KHÁC ra khỏi N ô này
+                            for (int i = 0; i < 9; ++i) {
+                                if ((positionUnion >> i) & 1) { // Nếu ô thứ i nằm trong nhóm N ô
+                                    int r = cellCoords[i].first;
+                                    int c = cellCoords[i].second;
+                                    subsetCells.push_back({r, c});
+
+                                    for (int v = 1; v <= 9; ++v) {
+                                        // Nếu chữ số v có trong ô này, NHƯNG KHÔNG NẰM TRONG digitMask (bộ ẩn)
+                                        if (grid.cells[r][c].candidates[v] && !((digitMask >> v) & 1)) {
+                                            grid.cells[r][c].candidates[v] = false;
+                                            grid.cells[r][c].candidateCount--;
+                                            hasEliminated = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 5. Chỉ trả về kết quả nếu thực sự có ứng viên bị dọn dẹp
+                            // (Tránh trường hợp lặp lại Naked Subset do 2 ô vốn chỉ có đúng 2 số)
+                            if (hasEliminated) {
+                                HintResult res;
+                                res.found = true;
+                                res.row = subsetCells[0].first;
+                                res.col = subsetCells[0].second;
+                                res.value = 0; // Thuật toán loại trừ, không điền số
+                                res.strategyName = strategyName;
+
+                                std::stringstream ss;
+                                ss << "Tim thay " << strategyName << " gom cac so {";
+                                bool first = true;
+                                for (int v = 1; v <= 9; ++v) {
+                                    if ((digitMask >> v) & 1) {
+                                        if (!first) ss << ", ";
+                                        ss << v;
+                                        first = false;
+                                    }
+                                }
+                                ss << "} an minh tai cac o ";
+                                for (const auto& cell : subsetCells) {
+                                    ss << "(" << cell.first << "," << cell.second << ") ";
+                                }
+                                ss << "trong ";
+                                if (regionType == 0) ss << "Hang " << regionIdx;
+                                else if (regionType == 1) ss << "Cot " << regionIdx;
+                                else ss << "Block";
+                                ss << " -> Da loai bo cac ung vien khac khoi cac o nay.";
+                                
+                                res.explanation = ss.str();
+                                return res;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return HintResult{};
+    }
 } // Kết thúc anonymous namespace
+
+// ========================================================================
+// ĐỊNH NGHĨA CÁC HÀM GỌI NAKED SUBSETS
+// ========================================================================
 
 // Naked Pairs (Cặp bài trùng)
 HintResult FindNakedPairs(SudokuGrid& grid) {
@@ -225,3 +350,16 @@ HintResult FindNakedTriples(SudokuGrid& grid) {
 HintResult FindNakedQuads(SudokuGrid& grid) {
     return FindNakedSubset(grid, 4, "Naked Quad");
 }
+
+// ========================================================================
+// ĐỊNH NGHĨA CÁC HÀM GỌI HIDDEN SUBSETS
+// ========================================================================
+
+// Hidden Pairs (Cặp ẩn)
+HintResult FindHiddenPairs(SudokuGrid& grid) { return FindHiddenSubset(grid, 2, "Hidden Pair"); }
+
+// Hidden Triples (Bộ 3 ẩn)
+HintResult FindHiddenTriples(SudokuGrid& grid) { return FindHiddenSubset(grid, 3, "Hidden Triple"); }
+
+// Hidden Quads (Bộ 4 ẩn)
+HintResult FindHiddenQuads(SudokuGrid& grid) { return FindHiddenSubset(grid, 4, "Hidden Quad"); }
