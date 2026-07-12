@@ -87,45 +87,28 @@ void SolverEngine::PrintGrid() const {
 HintResult SolverEngine::GetNextHint() {
     HintResult result;
 
-    //======================== CÁC THUẬT TOÁN GỢI Ý CƠ BẢN =========================
+    // Cấp 1: Các thuật toán điền số chắc chắn (Singles)
+    result = FindNakedSingle(grid); if (result.found) return result;
+    result = FindHiddenSingle(grid); if (result.found) return result;
 
-    // -----------------------------------------------------------
-    // CẤP 1: CÁC THUẬT TOÁN ĐIỀN SỐ CHẮC CHẮN (SINGLES)
-    // -----------------------------------------------------------
-    result = FindNakedSingle(grid);
-    if (result.found) return result;
+    // Cấp 2: Các cặp trùng (Naked & Hidden Pairs)
+    result = FindNakedPairs(grid); if (result.found) return result;
+    result = FindHiddenPairs(grid); if (result.found) return result;
 
-    result = FindHiddenSingle(grid);
-    if (result.found) return result;
+    // Cấp 2.5: Pointing (Chiến thuật giao lộ đầu tiên)
+    result = FindPointing(grid); if (result.found) return result; // <--- MỚI THÊM
 
-    // -----------------------------------------------------------
-    // CẤP 2: CÁC THUẬT TOÁN LOẠI TRỪ 2 Ô / 2 SỐ (PAIRS)
-    // -----------------------------------------------------------
-    result = FindNakedPairs(grid);
-    if (result.found) return result;
+    // Cấp 3: Bộ ba (Naked & Hidden Triples)
+    result = FindNakedTriples(grid); if (result.found) return result;
+    result = FindHiddenTriples(grid); if (result.found) return result;
 
-    result = FindHiddenPairs(grid); 
-    if (result.found) return result;
+    // Cấp 3.5: Box/Line Reduction (Chiến thuật giao lộ nâng cao)
+    result = FindBoxLineReduction(grid); if (result.found) return result; // <--- MỚI THÊM
 
-    // -----------------------------------------------------------
-    // CẤP 3: CÁC THUẬT TOÁN LOẠI TRỪ 3 Ô / 3 SỐ (TRIPLES)
-    // -----------------------------------------------------------
-    result = FindNakedTriples(grid);
-    if (result.found) return result;
+    // Cấp 4: Bộ bốn (Naked & Hidden Quads)
+    result = FindNakedQuads(grid); if (result.found) return result;
+    result = FindHiddenQuads(grid); if (result.found) return result;
 
-    result = FindHiddenTriples(grid); 
-    if (result.found) return result;
-
-    // -----------------------------------------------------------
-    // CẤP 4: CÁC THUẬT TOÁN LOẠI TRỪ 4 Ô / 4 SỐ (QUADS)
-    // -----------------------------------------------------------
-    result = FindNakedQuads(grid);
-    if (result.found) return result;
-
-    result = FindHiddenQuads(grid); 
-    if (result.found) return result;
-
-    // Trả về false nếu không thuật toán nào tìm ra bước đi mới
     return result; 
 }
 

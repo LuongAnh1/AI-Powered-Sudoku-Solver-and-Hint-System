@@ -15,6 +15,7 @@ include_directories(src)
 set(ALGO_SOURCES 
     src/solver_engine.cpp
     src/strategies/basic_strategies.cpp
+    src/strategies/intersection_strategies.cpp
 )
 
 # 6. TẠO SẢN PHẨM: Tạo ra file chạy "sudoku_test.exe" bằng cách dịch file test_runner.cpp 

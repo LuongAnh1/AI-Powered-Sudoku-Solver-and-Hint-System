@@ -37,3 +37,15 @@ HintResult FindHiddenTriples(SudokuGrid& grid);
 
 // Hidden Quads (Bộ 4 ẩn) - tương tự như Hidden Pairs, nhưng với 4 ô và 4 ứng viên
 HintResult FindHiddenQuads(SudokuGrid& grid);
+
+// ========================================================
+// NHÓM 2: CÁC THUẬT TOÁN GIAO NHAU (Intersection Strategies)
+// ========================================================
+
+// Pointing Pairs/Triples (Chỉ điểm) - nếu trong 1 Block, các ứng viên của 1 số chỉ nằm trên cùng 1 Hàng hoặc Cột
+// => Tất cả các ô khác trên Hàng hoặc Cột đó sẽ loại bỏ ứng viên này
+HintResult FindPointing(SudokuGrid& grid);
+
+// Box/Line Reduction (Thu gọn khối/đường) - nếu trong 1 Hàng hoặc Cột, các ứng viên của 1 số chỉ nằm trong cùng 1 Block
+// => Tất cả các ô khác trong Block đó sẽ loại bỏ ứng viên này
+HintResult FindBoxLineReduction(SudokuGrid& grid);
