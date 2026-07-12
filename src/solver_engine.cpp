@@ -109,6 +109,12 @@ HintResult SolverEngine::GetNextHint() {
     result = FindNakedQuads(grid); if (result.found) return result;
     result = FindHiddenQuads(grid); if (result.found) return result;
 
+    // -----------------------------------------------------------
+    // CẤP 5: CÁC THUẬT TOÁN NÂNG CAO (ADVANCED STRATEGIES)
+    // -----------------------------------------------------------
+    result = FindXWing(grid); 
+    if (result.found) return result;
+
     return result; 
 }
 

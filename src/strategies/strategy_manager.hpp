@@ -49,3 +49,13 @@ HintResult FindPointing(SudokuGrid& grid);
 // Box/Line Reduction (Thu gọn khối/đường) - nếu trong 1 Hàng hoặc Cột, các ứng viên của 1 số chỉ nằm trong cùng 1 Block
 // => Tất cả các ô khác trong Block đó sẽ loại bỏ ứng viên này
 HintResult FindBoxLineReduction(SudokuGrid& grid);
+
+// ===========================================================
+// NHÓM 3: KỸ THUẬT CÁ (Fish Techniques) - X-Wing, XY-Wing, Swordfish, Jellyfish
+// ===========================================================
+
+// X-Wing (Cá X) - Tìm 2 Hàng hoặc 2 Cột mà ứng viên của 1 số chỉ xuất hiện ở đúng 2 Cột hoặc 2 Hàng giống nhau
+// tức là tạo thành 1 hình chữ nhật, các ô khác trên 2 Cột hoặc 2 Hàng này sẽ loại bỏ ứng viên này
+// => Tất cả các ô khác trên 2 Cột hoặc 2 Hàng này sẽ loại bỏ ứng viên này
+HintResult FindXWing(SudokuGrid& grid);
+
