@@ -118,6 +118,9 @@ HintResult SolverEngine::GetNextHint() {
     result = FindSwordfish(grid); 
     if (result.found) return result;
 
+    result = FindJellyfish(grid); 
+    if (result.found) return result;
+
     result = FindXYWing(grid); 
     if (result.found) return result;
 

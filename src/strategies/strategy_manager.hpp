@@ -59,8 +59,11 @@ HintResult FindBoxLineReduction(SudokuGrid& grid);
 // => Tất cả các ô khác trên 2 Cột hoặc 2 Hàng này sẽ loại bỏ ứng viên này
 HintResult FindXWing(SudokuGrid& grid);
 
-// SWORDFISH (Cá Kiếm) - Nâng cấp của X-WING, CẤP ĐỘ 2
+// SWORDFISH (Cá Kiếm) - Nâng cấp của X-WING thành 3 hàng hoặc 3 cột, CẤP ĐỘ 2
 HintResult FindSwordfish(SudokuGrid& grid);
+
+// JELLYFISH (Cá Sứa) - Nâng cấp của SWORDFISH thành 4 hàng hoặc 4 cột, CẤP ĐỘ 3
+HintResult FindJellyfish(SudokuGrid& grid);
 
 // ===========================================================
 // NHÓM 3: KỸ THUẬT CÁNH (Wing Techniques) - XY-Wing, XYZ-Wing
