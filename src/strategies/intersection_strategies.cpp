@@ -110,7 +110,7 @@ HintResult FindPointing(SudokuGrid& grid) {
                     res.strategyName = "Pointing Col";
 
                     std::stringstream ss;
-                    ss << "[Pointing Col] Trong Block " << blockIdx 
+                    ss << "Trong Block " << blockIdx 
                        << ", so " << v << " chi co the nam tren Cot " << targetCol 
                        << " -> Da loai bo " << v << " khoi cac o khac tren cot nay ngoai Block.";
                     res.explanation = ss.str();

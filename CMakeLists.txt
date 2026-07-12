@@ -17,6 +17,7 @@ set(ALGO_SOURCES
     src/strategies/basic_strategies.cpp
     src/strategies/intersection_strategies.cpp
     src/strategies/fish_strategies.cpp
+    src/strategies/wing_strategies.cpp
 )
 
 # 6. TẠO SẢN PHẨM: Tạo ra file chạy "sudoku_test.exe" bằng cách dịch file test_runner.cpp 

@@ -115,6 +115,15 @@ HintResult SolverEngine::GetNextHint() {
     result = FindXWing(grid); 
     if (result.found) return result;
 
+    result = FindSwordfish(grid); 
+    if (result.found) return result;
+
+    result = FindXYWing(grid); 
+    if (result.found) return result;
+
+    result = FindXYZWing(grid); 
+    if (result.found) return result;
+
     return result; 
 }
 

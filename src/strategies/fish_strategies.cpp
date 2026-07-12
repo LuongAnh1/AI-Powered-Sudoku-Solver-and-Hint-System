@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <set>
 
 // ========================================================================
 // 1. THUẬT TOÁN: X-WING (NHÓM FISH CẤP ĐỘ 1)
@@ -139,6 +140,156 @@ HintResult FindXWing(SudokuGrid& grid) {
                            << "   -> Da loai bo " << v << " khoi cac o khac tren 2 Hang nay.";
                         res.explanation = ss.str();
                         return res;
+                    }
+                }
+            }
+        }
+    }
+    return HintResult{};
+}
+
+// ========================================================================
+// 2. THUẬT TOÁN: SWORDFISH (Nâng cấp của X-WING, CẤP ĐỘ 2)
+// ========================================================================
+HintResult FindSwordfish(SudokuGrid& grid) {
+    for (int v = 1; v <= 9; ++v) {
+        
+        // -------------------------------------------------------------
+        // TRƯỜNG HỢP A: SWORDFISH THEO HÀNG (ROW-BASED)
+        // Tìm 3 hàng có ứng viên v nằm gom cụm trong đúng 3 cột chung
+        // -------------------------------------------------------------
+        std::vector<std::pair<int, std::vector<int>>> rowsWithCand;
+        for (int r = 0; r < 9; ++r) {
+            std::vector<int> cols;
+            for (int c = 0; c < 9; ++c) {
+                if (grid.cells[r][c].value == 0 && grid.cells[r][c].candidates[v]) {
+                    cols.push_back(c);
+                }
+            }
+            // Một hàng hợp lệ cho Swordfish phải chứa đúng 2 hoặc 3 ứng viên v
+            if (cols.size() == 2 || cols.size() == 3) {
+                rowsWithCand.push_back({r, cols});
+            }
+        }
+
+        if (rowsWithCand.size() >= 3) {
+            // Duyệt mọi tổ hợp chập 3 của các Hàng thỏa mãn
+            for (size_t i = 0; i < rowsWithCand.size(); ++i) {
+                for (size_t j = i + 1; j < rowsWithCand.size(); ++j) {
+                    for (size_t k = j + 1; k < rowsWithCand.size(); ++k) {
+                        
+                        // Lấy hợp (Union) các cột của 3 hàng này
+                        std::set<int> colUnion;
+                        for (int c : rowsWithCand[i].second) colUnion.insert(c);
+                        for (int c : rowsWithCand[j].second) colUnion.insert(c);
+                        for (int c : rowsWithCand[k].second) colUnion.insert(c);
+
+                        // Nếu tổng số cột xuất hiện của cả 3 hàng này đúng bằng 3
+                        if (colUnion.size() == 3) {
+                            std::vector<int> cols(colUnion.begin(), colUnion.end());
+                            int r1 = rowsWithCand[i].first;
+                            int r2 = rowsWithCand[j].first;
+                            int r3 = rowsWithCand[k].first;
+
+                            bool hasEliminated = false;
+                            // Loại bỏ v khỏi 3 cột này ở các hàng khác
+                            for (int r = 0; r < 9; ++r) {
+                                if (r != r1 && r != r2 && r != r3) {
+                                    for (int c : cols) {
+                                        if (grid.cells[r][c].value == 0 && grid.cells[r][c].candidates[v]) {
+                                            grid.cells[r][c].candidates[v] = false;
+                                            grid.cells[r][c].candidateCount--;
+                                            hasEliminated = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (hasEliminated) {
+                                HintResult res;
+                                res.found = true;
+                                res.row = r1;
+                                res.col = cols[0];
+                                res.value = 0;
+                                res.strategyName = "Swordfish (Row)";
+
+                                std::stringstream ss;
+                                ss << "Tim thay Swordfish cua so " << v 
+                                   << " tai cac Hang {" << r1 << ", " << r2 << ", " << r3 << "}"
+                                   << " va phan bo tren các Cot {" << cols[0] << ", " << cols[1] << ", " << cols[2] << "}.\n"
+                                   << "   -> Da loai bo " << v << " khoi cac o khac tren 3 Cot nay.";
+                                res.explanation = ss.str();
+                                return res;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // -------------------------------------------------------------
+        // TRƯỜNG HỢP B: SWORDFISH THEO CỘT (COLUMN-BASED)
+        // Tìm 3 cột có ứng viên v nằm gom cụm trong đúng 3 hàng chung
+        // -------------------------------------------------------------
+        std::vector<std::pair<int, std::vector<int>>> colsWithCand;
+        for (int c = 0; c < 9; ++c) {
+            std::vector<int> rows;
+            for (int r = 0; r < 9; ++r) {
+                if (grid.cells[r][c].value == 0 && grid.cells[r][c].candidates[v]) {
+                    rows.push_back(r);
+                }
+            }
+            if (rows.size() == 2 || rows.size() == 3) {
+                colsWithCand.push_back({c, rows});
+            }
+        }
+
+        if (colsWithCand.size() >= 3) {
+            for (size_t i = 0; i < colsWithCand.size(); ++i) {
+                for (size_t j = i + 1; j < colsWithCand.size(); ++j) {
+                    for (size_t k = j + 1; k < colsWithCand.size(); ++k) {
+                        
+                        std::set<int> rowUnion;
+                        for (int r : colsWithCand[i].second) rowUnion.insert(r);
+                        for (int r : colsWithCand[j].second) rowUnion.insert(r);
+                        for (int r : colsWithCand[k].second) rowUnion.insert(r);
+
+                        if (rowUnion.size() == 3) {
+                            std::vector<int> rows(rowUnion.begin(), rowUnion.end());
+                            int c1 = colsWithCand[i].first;
+                            int c2 = colsWithCand[j].first;
+                            int c3 = colsWithCand[k].first;
+
+                            bool hasEliminated = false;
+                            for (int c = 0; c < 9; ++c) {
+                                if (c != c1 && c != c2 && c != c3) {
+                                    for (int r : rows) {
+                                        if (grid.cells[r][c].value == 0 && grid.cells[r][c].candidates[v]) {
+                                            grid.cells[r][c].candidates[v] = false;
+                                            grid.cells[r][c].candidateCount--;
+                                            hasEliminated = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (hasEliminated) {
+                                HintResult res;
+                                res.found = true;
+                                res.row = rows[0];
+                                res.col = c1;
+                                res.value = 0;
+                                res.strategyName = "Swordfish (Col)";
+
+                                std::stringstream ss;
+                                ss << "Tim thay Swordfish cua so " << v 
+                                   << " tai cac Cot {" << c1 << ", " << c2 << ", " << c3 << "}"
+                                   << " va phan bo tren các Hang {" << rows[0] << ", " << rows[1] << ", " << rows[2] << "}.\n"
+                                   << "   -> Da loai bo " << v << " khoi cac o khac tren 3 Hang nay.";
+                                res.explanation = ss.str();
+                                return res;
+                            }
+                        }
                     }
                 }
             }

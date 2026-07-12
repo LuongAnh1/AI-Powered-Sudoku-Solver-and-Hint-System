@@ -51,11 +51,30 @@ HintResult FindPointing(SudokuGrid& grid);
 HintResult FindBoxLineReduction(SudokuGrid& grid);
 
 // ===========================================================
-// NHÓM 3: KỸ THUẬT CÁ (Fish Techniques) - X-Wing, XY-Wing, Swordfish, Jellyfish
+// NHÓM 3: KỸ THUẬT CÁ (Fish Techniques)
 // ===========================================================
 
 // X-Wing (Cá X) - Tìm 2 Hàng hoặc 2 Cột mà ứng viên của 1 số chỉ xuất hiện ở đúng 2 Cột hoặc 2 Hàng giống nhau
 // tức là tạo thành 1 hình chữ nhật, các ô khác trên 2 Cột hoặc 2 Hàng này sẽ loại bỏ ứng viên này
 // => Tất cả các ô khác trên 2 Cột hoặc 2 Hàng này sẽ loại bỏ ứng viên này
 HintResult FindXWing(SudokuGrid& grid);
+
+// SWORDFISH (Cá Kiếm) - Nâng cấp của X-WING, CẤP ĐỘ 2
+HintResult FindSwordfish(SudokuGrid& grid);
+
+// ===========================================================
+// NHÓM 3: KỸ THUẬT CÁNH (Wing Techniques) - XY-Wing, XYZ-Wing
+// ===========================================================
+
+// XY-Wing (Cá XY) - Tìm 3 ô chỉ có 2 ứng viên
+// Giả sử có 3 ô A, B, C với các ứng viên {X,Y}, {X,Z}, {Y,Z} (X,Y,Z là 3 số khác nhau)
+// Với điều kiện A nhìn thấy B, A nhìn thấy C, B và C không nhìn thấy nhau
+// => Tất cả các ô nhìn thấy cả B và C sẽ loại bỏ ứng viên Z
+// Nhìn thấy nghĩa là 2 ô nằm trên cùng 1 Hàng, Cột hoặc Block 3x3 
+HintResult FindXYWing(SudokuGrid& grid);
+
+// XYZ-Wing (Cá XYZ) - Tìm 3 ô, trong đó 1 ô có 3 ứng viên {X,Y,Z} và 2 ô còn lại có 2 ứng viên {X,Z} và {Y,Z}
+// Với điều kiện ô có 3 ứng viên nhìn thấy cả 2 ô còn lại, 2 ô còn lại không nhìn thấy nhau
+// => Tất cả các ô nhìn thấy cả 2 ô còn lại sẽ loại bỏ ứng viên Z
+HintResult FindXYZWing(SudokuGrid& grid);
 
