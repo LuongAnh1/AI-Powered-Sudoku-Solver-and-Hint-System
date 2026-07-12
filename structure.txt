@@ -6,8 +6,24 @@ Ahihi/
 ├── README.md                       # Tài liệu giới thiệu dự án & Luồng làm việc hàng ngày
 ├── SETUP.md                        # Tài liệu hướng dẫn cài đặt compiler & môi trường ban đầu
 ├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án)
-├── app/                            # Thư mục chứa ứng dụng Python (Giao diện & Xử lý ảnh)
-│   └── main.py                     # File chạy chính của ứng dụng Python (UI & OpenCV)
+├── app/                            # THƯ MỤC CHỨA KHỐI UI & COMPUTER VISION (PYTHON)
+│   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python
+│   │
+│   ├── cv/                         # Phân vùng xử lý ảnh (Computer Vision)
+│   │   ├── __init__.py
+│   │   ├── detector.py             # Tiền xử lý, tìm lưới 9x9, căn góc và cắt 81 ô vuông
+│   │   └── recognizer.py           # Nhận diện chữ số (OCR) sử dụng học máy (KNN/CNN)
+│   │
+│   ├── gui/                        # Phân vùng quản lý giao diện (UI/UX)
+│   │   ├── __init__.py
+│   │   └── app_layout.py           # Thiết kế layout giao diện (CustomTkinter)
+│   │
+│   ├── models/                     # Thư mục lưu trữ các file Model học máy đã train
+│   │   └── digit_model.onnx        # File model nhận diện chữ số (hoặc .h5, .xml, .xml.gz)
+│   │
+│   └── test_images/                # Thư mục chứa các ảnh Sudoku mẫu để bạn test thuật toán CV
+│       ├── sample_01.jpg
+│       └── sample_02.png
 └── src/                            # THƯ MỤC CHỨA LÕI THUẬT TOÁN (C++ ENGINE)
     ├── types.hpp                   # Định nghĩa các kiểu dữ liệu logic (Cell, Grid, HintResult)
     ├── solver_engine.hpp           # Khai báo bộ chạy điều phối chính (Waterfall Orchestrator)
