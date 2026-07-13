@@ -89,3 +89,22 @@ sudoku_test
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# ====================================================================
+# Dữ liệu ảnh và các tệp tin dữ liệu sinh ra khi chạy ứng dụng
+# ====================================================================
+# Bỏ qua tất cả các định dạng ảnh phổ biến
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+*.tiff
+*.webp
+
+# Bỏ qua các thư mục debug và thư mục cắt ô sinh ra khi chạy thử nghiệm
+**/debug_*/
+**/cells_*/
+
+# Bỏ qua các tệp tin dữ liệu (.dat)
+*.dat

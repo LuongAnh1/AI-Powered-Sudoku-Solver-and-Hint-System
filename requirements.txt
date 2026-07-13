@@ -9,3 +9,7 @@ pybind11>=2.11.0
 
 # Thư viện làm giao diện (bạn có thể chọn PyQt5 hoặc CustomTkinter)
 customtkinter>=5.2.0
+Pillow>=10.0.0
+
+# Thư viện chạy mô hình ONNX (tùy chọn, khuyến nghị nếu không dùng OpenCV DNN)
+# onnxruntime>=1.16.0
