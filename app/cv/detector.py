@@ -149,7 +149,9 @@ def find_sudoku_grid(image_path, output_size=450, debug_dir=None):
         
     return warped
 
-def extract_cells_smart(warped_grid, output_size=450, margin=4, debug_dir=None):
+# def extract_cells_smart(warped_grid, output_size=450, margin=4, debug_dir=None):
+def extract_cells_smart(warped_grid, output_size=450, margin=2, debug_dir=None):
+    # Thay đổi mặc định margin từ 4 xuống 2 để giữ tối đa nét chữ sát lề
     # Bước 12: Nhị phân hóa cục bộ trên ảnh đã nắn thẳng
     gray = cv2.cvtColor(warped_grid, cv2.COLOR_BGR2GRAY)
     thresh = cv2.adaptiveThreshold(
@@ -233,8 +235,23 @@ def extract_cells_smart(warped_grid, output_size=450, margin=4, debug_dir=None):
         grid_cells.append(row_cells)
     return grid_cells
 
-def fallback_extract_cells(warped_grid, output_size=450, margin=4):
-    safe_margin = margin + 3 
+# def fallback_extract_cells(warped_grid, output_size=450, margin=4):
+#     safe_margin = margin + 3 
+#     cell_size = output_size // 9
+#     grid_cells = []
+#     for r in range(9):
+#         row_cells = []
+#         for c in range(9):
+#             y1, y2 = r * cell_size, (r + 1) * cell_size
+#             x1, x2 = c * cell_size, (c + 1) * cell_size
+#             cell = warped_grid[y1:y2, x1:x2]
+#             cell_clean = cell[safe_margin:cell_size-safe_margin, safe_margin:cell_size-safe_margin]
+#             row_cells.append(cell_clean)
+#         grid_cells.append(row_cells)
+#     return grid_cells
+def fallback_extract_cells(warped_grid, output_size=450, margin=2):
+    # Hạ safe_margin xuống bằng đúng margin (2px) thay vì margin + 3 (7px)
+    safe_margin = margin 
     cell_size = output_size // 9
     grid_cells = []
     for r in range(9):
@@ -243,6 +260,7 @@ def fallback_extract_cells(warped_grid, output_size=450, margin=4):
             y1, y2 = r * cell_size, (r + 1) * cell_size
             x1, x2 = c * cell_size, (c + 1) * cell_size
             cell = warped_grid[y1:y2, x1:x2]
+            # Cắt biên thô rất nhẹ (chỉ bỏ 2px sát rìa ngoài cùng chứa lưới thật)
             cell_clean = cell[safe_margin:cell_size-safe_margin, safe_margin:cell_size-safe_margin]
             row_cells.append(cell_clean)
         grid_cells.append(row_cells)

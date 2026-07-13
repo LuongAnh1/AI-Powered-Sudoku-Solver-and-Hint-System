@@ -20,7 +20,7 @@ class SudokuRecognizer:
     def clean_and_center_digit(self, cell_img, pad=8):
         """
         Dọn sạch viền lưới bám mép và căn giữa chữ số.
-        Được nâng cấp bộ lọc C-Constant, Aspect Ratio và Scale Guard để triệt tiêu bóng mờ/nếp gấp nặng.
+        Đã tích hợp thêm Max Size Guard để triệt tiêu góc lưới chữ L và nhiễu lấm chấm ở ô trống.
         """
         if len(cell_img.shape) == 3:
             gray = cv2.cvtColor(cell_img, cv2.COLOR_BGR2GRAY)
@@ -33,26 +33,23 @@ class SudokuRecognizer:
         _, std_dev = cv2.meanStdDev(gray)
         std_val = std_dev[0][0]
 
-        # Nếu ô quá phẳng/mịn hoặc độ biến động xám cực nhỏ -> Kết luận ô trống ngay lập tức
         if contrast_range < 30 or std_val < 5.0:
             return np.ones((50, 50), dtype=np.uint8) * 255
 
-        # 2. PHÂN NGƯỠNG THÍCH ỨNG NÂNG CAO (Nâng C từ 5 lên 14)
-        # Yêu cầu nét chữ phải tối vượt trội so với nền mới giữ lại, loại bỏ sạch bóng mờ mịn
+        # 2. PHÂN NGƯỠNG THÍCH ỨNG
         thresh = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV, 19, 14
+            cv2.THRESH_BINARY_INV, 19, 8
         )
         
-        # 3. CẮT BIÊN CÔ LẬP (Margin Severing)
-        # Xóa trắng 5px ở rìa để cắt đứt liên kết từ chữ số ra lưới ngoài hoặc bóng góc
-        margin = 5
+        # 3. CẮT BIÊN CÔ LẬP TỐI ƯU (Margin Severing)
+        margin = 2
         thresh[0:margin, :] = 0
         thresh[-margin:, :] = 0
         thresh[:, 0:margin] = 0
         thresh[:, -margin:] = 0
                 
-        # 4. TÌM CONTOUR NẰM GẦN TÂM NHẤT (Centroid Filter)
+        # 4. TÌM CONTOUR CHỮ SỐ CHUẨN HÌNH HỌC (Geometry Contours Filter)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         best_contour = None
@@ -62,28 +59,41 @@ class SudokuRecognizer:
             area = cv2.contourArea(c)
             x, y, dw, dh = cv2.boundingRect(c)
             
-            # --- MÀNG LỌC HÌNH HỌC NÂNG CAO ---
-            # A. Scale Guard: Loại bỏ nét mảnh, specks nhiễu nhỏ (như TH1)
-            if area < 16 or dh < 10:
+            # --- MÀNG LỌC HÌNH HỌC NGĂN CHẶN ĐƯỜNG LƯỚI & GÓC GIAO ---
+            # A. Max Size Guard: Chữ số in Sudoku thật không bao giờ chiếm quá 36px rộng/cao trong ô 50x50.
+            # Lọc bỏ hoàn toàn đường lưới dọc, ngang dài và các góc giao chữ L.
+            if dw > 36 or dh > 36:
+                continue
+            
+            # B. Scale Guard: Lọc nhiễu hạt nhỏ, bụi bẩn lấm chấm
+            if area < 15 or dh < 8:
                 continue
                 
-            # B. Aspect Ratio Guard: Chữ số Sudoku thực tế không bao giờ dẹt nằm ngang (như TH3)
+            # C. Lọc đường kẻ ngang dẹt (Nếp gấp ngang dẹt)
             if dw > 1.6 * dh:
                 continue
-            # ----------------------------------
                 
-            # Tính toán khoảng cách từ tâm của nét vẽ tới tâm của ô ảnh (25, 25)
+            # D. Lọc đường lưới dọc dẹt thẳng đứng
+            if dh > 4.5 * dw:
+                continue
+                
+            # E. Edge Touch Guard: Lọc nét dọc bám sát sạt mép ảnh tuyệt đối
+            if x <= 1 or (x + dw) >= (thresh.shape[1] - 1):
+                if dh > 2.2 * dw:
+                    continue
+            # --------------------------------------------------------
+                
+            # Tính toán khoảng cách tới tâm hình học của ảnh
             cx = x + dw / 2.0
             cy = y + dh / 2.0
-            dist = np.sqrt((cx - 25) ** 2 + (cy - 25) ** 2)
+            dist = np.sqrt((cx - (thresh.shape[1]/2.0)) ** 2 + (cy - (thresh.shape[0]/2.0)) ** 2)
             
-            # Ưu tiên nét vẽ nằm gần trung tâm ô nhất
             if dist < min_dist_to_center:
                 min_dist_to_center = dist
                 best_contour = c
                 
         if best_contour is None:
-            # Nếu không tìm thấy nét vẽ nào thỏa mãn tiêu chuẩn hình học chữ số -> Ô trống
+            # Nếu không có contour nào vượt qua được hệ thống màng lọc -> Kết luận ô trống
             return np.ones((50, 50), dtype=np.uint8) * 255
             
         # 5. TRÍCH XUẤT, CO GIÃN VÀ CĂN GIỮA NÉT CHỮ
