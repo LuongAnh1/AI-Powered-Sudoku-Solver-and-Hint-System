@@ -17,6 +17,9 @@ public:
     
     // Nhận dữ liệu đầu vào 
     void LoadGrid(const std::vector<std::vector<int>>& input);
+
+    // Xuất ma trận kết quả ra ngoài
+    std::vector<std::vector<int>> GetGrid() const;
     
     // In kết quả ra màn hình 
     void PrintGrid() const;
