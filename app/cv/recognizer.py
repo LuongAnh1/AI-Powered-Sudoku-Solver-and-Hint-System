@@ -20,7 +20,7 @@ class SudokuRecognizer:
     def clean_and_center_digit(self, cell_img, pad=8):
         """
         Dọn sạch viền lưới bám mép và căn giữa chữ số.
-        Sử dụng Unsharp Masking chuyên sâu và Block Size = 13 để làm nét chữ mờ mà không bị bết nét.
+        Đã tích hợp bộ lọc phân loại chữ số thực tế (Solved Digit) và chữ số ứng viên (Pencil Marks).
         """
         if len(cell_img.shape) == 3:
             gray_orig = cv2.cvtColor(cell_img, cv2.COLOR_BGR2GRAY)
@@ -37,18 +37,15 @@ class SudokuRecognizer:
             return np.ones((50, 50), dtype=np.uint8) * 255
 
         # 2. KHỬ MỜ ĐỘNG CHUYÊN SÂU (Adaptive Unsharp Masking)
-        # Chỉ kích hoạt khi ảnh bị mờ nặng (phương sai Laplacian < 180)
         laplacian_var = cv2.Laplacian(gray_orig, cv2.CV_64F).var()
         
         if laplacian_var < 180.0:
-            # Trích xuất và khuếch đại biên sắc cạnh chất lượng cao, giữ sạch vùng lòng chữ
             blurred = cv2.GaussianBlur(gray_orig, (3, 3), 0)
             gray = cv2.addWeighted(gray_orig, 1.8, blurred, -0.8, 0)
         else:
             gray = gray_orig.copy()
 
-        # 3. PHÂN NGƯỠNG THÍCH ỨNG TỐI ƯU (Thu hẹp block_size xuống 13 và C = 6)
-        # Kích thước khối 13 giúp tách bạch các nét sát nhau, giữ lòng chữ (như số 2, 8, 6) luôn rỗng
+        # 3. PHÂN NGƯỠNG THÍCH ỨNG TỐI ƯU (Block_size = 13, C = 6)
         thresh = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY_INV, 13, 6
@@ -61,11 +58,10 @@ class SudokuRecognizer:
         thresh[:, 0:margin] = 0
         thresh[:, -margin:] = 0
                 
-        # 5. TÌM CONTOUR CHỮ SỐ CHUẨN HÌNH HỌC (Geometry Contours Filter)
+        # 5. TÌM CONTOUR VÀ PHÂN LOẠI CHỮ SỐ (Pencil Mark Filter)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
-        best_contour = None
-        min_dist_to_center = 999.0
+        large_digits = []
         
         for c in contours:
             area = cv2.contourArea(c)
@@ -75,21 +71,34 @@ class SudokuRecognizer:
             if dw > 36 or dh > 36:
                 continue
             
-            if area < 15 or dh < 8:
+            # Loại bỏ nhiễu vụn cực nhỏ
+            if area < 10 or dh < 6:
                 continue
                 
-            if dw > 1.6 * dh:
+            # Loại bỏ nét kẻ dẹt dọc hoặc ngang
+            if dw > 1.6 * dh or dh > 4.5 * dw:
                 continue
                 
-            if dh > 4.5 * dw:
-                continue
-                
+            # Loại bỏ nét bám sạt mép đứng dẹt
             if x <= 1 or (x + dw) >= (thresh.shape[1] - 1):
                 if dh > 2.2 * dw:
                     continue
             # --------------------------------------------------------
+            
+            # PHÂN LOẠI: Chỉ những nét vẽ có kích thước đủ lớn mới được coi là CHỮ SỐ CHÍNH (Solved Digit)
+            # Chữ số ứng viên nhỏ (Pencil Marks) thường có chiều cao dh < 14px trên lưới 50x50 px
+            if dh >= 14 and dw >= 7:
+                large_digits.append((c, area, x, y, dw, dh))
                 
-            # Tính toán khoảng cách tới tâm hình học của ảnh
+        # Nếu không tìm thấy bất kỳ chữ số lớn nào, kết luận đây là ô trống (chỉ chứa ứng viên hoặc nhiễu)
+        if not large_digits:
+            return np.ones((50, 50), dtype=np.uint8) * 255
+            
+        # Chọn chữ số lớn tốt nhất (gần tâm hình học của ảnh nhất)
+        best_contour = None
+        min_dist_to_center = 999.0
+        
+        for c, area, x, y, dw, dh in large_digits:
             cx = x + dw / 2.0
             cy = y + dh / 2.0
             dist = np.sqrt((cx - (thresh.shape[1]/2.0)) ** 2 + (cy - (thresh.shape[0]/2.0)) ** 2)
@@ -101,7 +110,9 @@ class SudokuRecognizer:
         if best_contour is None:
             return np.ones((50, 50), dtype=np.uint8) * 255
             
-        # 6. TRÍCH XUẤT, CO GIÃN VÀ CĂN GIỮA NÉT CHỮ
+        # 6. TRÍCH XUẤT, CO GIÃN VÀ CĂN GIỮA NÉT CHỮ CHÍNH
+        # (Ở bước này, chúng ta chỉ lấy đúng bounding box của best_contour, 
+        # loại bỏ hoàn toàn các chữ số ứng viên nhỏ nằm xung quanh ra khỏi ảnh cắt)
         x, y, dw, dh = cv2.boundingRect(best_contour)
         digit_crop = thresh[y:y+dh, x:x+dw]
         
@@ -118,7 +129,7 @@ class SudokuRecognizer:
             
         final_cell = cv2.bitwise_not(canvas)
         return final_cell
-       
+         
     def is_blank_cell(self, cleaned_cell, threshold_ratio=0.008):
         """Kiểm tra ô trống dựa trên tỷ lệ điểm ảnh nét vẽ tối màu"""
         black_pixels = np.sum(cleaned_cell < 127)
