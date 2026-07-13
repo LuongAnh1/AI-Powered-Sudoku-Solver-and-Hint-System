@@ -1,33 +1,38 @@
 ```code
 Ahihi/
 ├── .gitignore                      # Cấu hình các file và thư mục bỏ qua không đẩy lên Git
-├── CMakeLists.txt                  # Cấu hình biên dịch mã nguồn C++ (CMake)
-├── requirements.txt                # Quản lý các thư viện Python (OpenCV, Pybind11...)
+├── CMakeLists.txt                  # Cấu hình biên dịch mã nguồn C++ (C++ Engine & Pybind11 Bridge)
+├── requirements.txt                # Quản lý thư viện Python chạy ứng dụng chính (OpenCV, CustomTkinter...)
+├── requirements-dev.txt            # Thư viện phục vụ R&D huấn luyện mô hình (PyTorch, ONNX, onnxscript...)
 ├── README.md                       # Tài liệu giới thiệu dự án & Luồng làm việc hàng ngày
 ├── SETUP.md                        # Tài liệu hướng dẫn cài đặt compiler & môi trường ban đầu
-├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án)
+├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án cập nhật)
 ├── app/                            # THƯ MỤC CHỨA KHỐI UI & COMPUTER VISION (PYTHON)
-│   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python
+│   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python (Giao diện đồ họa)
+│   ├── run_solver.py               # Kịch bản chạy tích hợp đầu-cuối thực tế (CV + C++ Solver)
+│   ├── test_pipeline.py            # Kịch bản kiểm thử quy trình xử lý ảnh và xuất 81 ảnh ô con phục vụ debug
+│   ├── sudoku_solver_cpp.cp312-win_amd64.pyd # Thư viện động C++ đã liên kết tĩnh (Gọi trực tiếp từ Python 3.12)
 │   │
 │   ├── cv/                         # Phân vùng xử lý ảnh (Computer Vision)
 │   │   ├── __init__.py
 │   │   ├── detector.py             # Tiền xử lý, tìm lưới 9x9, căn góc và cắt 81 ô vuông
-│   │   └── recognizer.py           # Nhận diện chữ số (OCR) sử dụng học máy (KNN/CNN)
+│   │   └── recognizer.py           # Nhận diện chữ số (OCR), lọc chữ số ứng viên (Pencil Marks)
 │   │
 │   ├── gui/                        # Phân vùng quản lý giao diện (UI/UX)
 │   │   ├── __init__.py
 │   │   └── app_layout.py           # Thiết kế layout giao diện (CustomTkinter)
 │   │
 │   ├── models/                     # Thư mục lưu trữ các file Model học máy đã train
-│   │   └── digit_model.onnx        # File model nhận diện chữ số (hoặc .h5, .xml, .xml.gz)
+│   │   ├── digit_model.onnx        # File đồ thị kiến trúc mạng neural ONNX
+│   │   └── digit_model.onnx.data   # File chứa trọng số mạng neural đã huấn luyện (tự sinh ra khi xuất ONNX)
 │   │
-│   └── test_images/                # Thư mục chứa các ảnh Sudoku mẫu để bạn test thuật toán CV
-│       ├── sample_01.jpg
-│       └── sample_02.png
+│   └── test_images/                # Thư mục chứa các ảnh Sudoku mẫu để test thuật toán CV
+│
 └── src/                            # THƯ MỤC CHỨA LÕI THUẬT TOÁN (C++ ENGINE)
     ├── types.hpp                   # Định nghĩa các kiểu dữ liệu logic (Cell, Grid, HintResult)
     ├── solver_engine.hpp           # Khai báo bộ chạy điều phối chính (Waterfall Orchestrator)
     ├── solver_engine.cpp           # Định nghĩa bộ chạy chính (Điều phối các thuật toán)
+    ├── bindings.cpp                # File đăng ký hàm và lớp C++ xuất khẩu sang Python (Pybind11)
     ├── strategies/                 # Thư mục chứa các nhóm thuật toán logic (Tách module)
     │   ├── strategy_manager.hpp    # Khai báo chung các hàm thuật toán để Engine gọi
     │   ├── basic_strategies.cpp    # Cấp 1: Singles, Pairs, Triples, Quads
@@ -42,7 +47,4 @@ Ahihi/
         └── integration/            # Thư mục chứa các bài kiểm thử tích hợp (Integration Tests)
             ├── test_engine.cpp     # Đọc đề bài mẫu, cho Engine giải và đối chiếu kết quả
             └── test_cases/         # Thư mục chứa các file đề bài mẫu dạng văn bản (.txt)
-                ├── easy_01.txt     # Đề bài mẫu cấp độ Dễ
-                ├── medium_01.txt   # Đề bài mẫu cấp độ Trung bình
-                └── hard_01.txt     # Đề bài mẫu cấp độ Khó
 ```
