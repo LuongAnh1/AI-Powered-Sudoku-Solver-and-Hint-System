@@ -1,5 +1,6 @@
 #pragma once
 #include "../types.hpp"
+#include "../utils/hint_formatter.hpp" // Khai báo class giải thích
 
 // ========================================================
 // NHÓM 1: CÁC THUẬT TOÁN CƠ BẢN (Basic Strategies)

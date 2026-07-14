@@ -1,7 +1,5 @@
 #include "strategy_manager.hpp"
 #include <vector>
-#include <string>
-#include <sstream>
 
 namespace {
     // Hàm nội bộ trợ giúp tính nhanh chỉ số Block từ tọa độ (r, c)
@@ -11,19 +9,16 @@ namespace {
 }
 
 // ========================================================================
-// 1. THUẬT TOÁN: POINTING PAIRS/TRIPLES (CHỈ ĐIỂM)
+// 1. THUẬT TOÁN: POINTING (CHỈ ĐIỂM)
 // ========================================================================
 HintResult FindPointing(SudokuGrid& grid) {
-    // Duyệt qua 9 Block (0 đến 8)
     for (int blockIdx = 0; blockIdx < 9; ++blockIdx) {
         int startRow = (blockIdx / 3) * 3;
         int startCol = (blockIdx % 3) * 3;
 
-        // Quét từng chữ số từ 1 đến 9
         for (int v = 1; v <= 9; ++v) {
-            std::vector<std::pair<int, int>> cellsWithCand;
+            std::vector<std::pair<int, int>> cellsWithCand; // Các ô dùng để highlight
 
-            // Tìm vị trí các ô trống trong Block hiện tại có chứa ứng viên v
             for (int i = 0; i < 3; ++i) {
                 for (int j = 0; j < 3; ++j) {
                     int r = startRow + i;
@@ -35,86 +30,51 @@ HintResult FindPointing(SudokuGrid& grid) {
             }
 
             int count = cellsWithCand.size();
-            // Pointing chỉ xét khi ứng viên v xuất hiện trong đúng 2 hoặc 3 ô
             if (count < 2 || count > 3) continue;
 
-            // TRƯỜNG HỢP A: Tất cả các ô này cùng nằm trên một Hàng (Row)
+            // TRƯỜNG HỢP A: Tất cả các ô cùng nằm trên một HÀNG
             bool sameRow = true;
             int targetRow = cellsWithCand[0].first;
             for (int i = 1; i < count; ++i) {
-                if (cellsWithCand[i].first != targetRow) {
-                    sameRow = false;
-                    break;
-                }
+                if (cellsWithCand[i].first != targetRow) { sameRow = false; break; }
             }
 
             if (sameRow) {
-                bool hasEliminated = false;
-                // Loại trừ ứng viên v khỏi các ô khác thuộc Hàng này nằm NGOÀI Block hiện tại
+                std::vector<CandidateElimination> elims; // Mảng thu thập ứng viên bị xóa
                 for (int col = 0; col < 9; ++col) {
-                    if (GetBlockIndex(targetRow, col) != blockIdx) {
+                    if (GetBlockIndex(targetRow, col) != blockIdx) { // Nằm ngoài Block hiện tại
                         if (grid.cells[targetRow][col].value == 0 && grid.cells[targetRow][col].candidates[v]) {
-                            grid.cells[targetRow][col].candidates[v] = false;
-                            grid.cells[targetRow][col].candidateCount--;
-                            hasEliminated = true;
+                            elims.push_back({targetRow, col, v}); // Ghi nhận cần xóa
                         }
                     }
                 }
 
-                if (hasEliminated) {
-                    HintResult res;
-                    res.found = true;
-                    res.row = cellsWithCand[0].first;
-                    res.col = cellsWithCand[0].second;
-                    res.value = 0;
-                    res.strategyName = "Pointing Row";
-
-                    std::stringstream ss;
-                    ss << "Trong Block " << blockIdx 
-                       << ", so " << v << " chi co the nam tren Hang " << targetRow 
-                       << " -> Da loai bo " << v << " khoi cac o khac tren hang nay ngoai Block.";
-                    res.explanation = ss.str();
-                    return res;
+                if (!elims.empty()) { // Nếu thực sự có ô bị xóa
+                    std::string msg = HintFormatter::Pointing(blockIdx, RegionType::ROW, targetRow, v);
+                    return HintResult::CreateEliminateHint("Pointing (Row)", cellsWithCand, elims, msg);
                 }
             }
 
-            // TRƯỜNG HỢP B: Tất cả các ô này cùng nằm trên một Cột (Column)
+            // TRƯỜNG HỢP B: Tất cả các ô cùng nằm trên một CỘT
             bool sameCol = true;
             int targetCol = cellsWithCand[0].second;
             for (int i = 1; i < count; ++i) {
-                if (cellsWithCand[i].second != targetCol) {
-                    sameCol = false;
-                    break;
-                }
+                if (cellsWithCand[i].second != targetCol) { sameCol = false; break; }
             }
 
             if (sameCol) {
-                bool hasEliminated = false;
-                // Loại trừ ứng viên v khỏi các ô khác thuộc Cột này nằm NGOÀI Block hiện tại
+                std::vector<CandidateElimination> elims;
                 for (int row = 0; row < 9; ++row) {
                     if (GetBlockIndex(row, targetCol) != blockIdx) {
                         if (grid.cells[row][targetCol].value == 0 && grid.cells[row][targetCol].candidates[v]) {
-                            grid.cells[row][targetCol].candidates[v] = false;
-                            grid.cells[row][targetCol].candidateCount--;
-                            hasEliminated = true;
+                            elims.push_back({row, targetCol, v});
                         }
                     }
                 }
 
-                if (hasEliminated) {
-                    HintResult res;
-                    res.found = true;
-                    res.row = cellsWithCand[0].first;
-                    res.col = cellsWithCand[0].second;
-                    res.value = 0;
-                    res.strategyName = "Pointing Col";
-
-                    std::stringstream ss;
-                    ss << "Trong Block " << blockIdx 
-                       << ", so " << v << " chi co the nam tren Cot " << targetCol 
-                       << " -> Da loai bo " << v << " khoi cac o khac tren cot nay ngoai Block.";
-                    res.explanation = ss.str();
-                    return res;
+                if (!elims.empty()) {
+                    std::string msg = HintFormatter::Pointing(blockIdx, RegionType::COLUMN, targetCol, v);
+                    return HintResult::CreateEliminateHint("Pointing (Col)", cellsWithCand, elims, msg);
                 }
             }
         }
@@ -126,31 +86,28 @@ HintResult FindPointing(SudokuGrid& grid) {
 // 2. THUẬT TOÁN: BOX/LINE REDUCTION (THU GỌN KHỐI/ĐƯỜNG)
 // ========================================================================
 HintResult FindBoxLineReduction(SudokuGrid& grid) {
+    
     // TRƯỜNG HỢP A: Quét từng HÀNG để tìm sự hội tụ vào một BLOCK
     for (int r = 0; r < 9; ++r) {
         for (int v = 1; v <= 9; ++v) {
-            std::vector<int> colsWithCand;
+            std::vector<std::pair<int, int>> cellsWithCand; // Highlight giao diện
             for (int c = 0; c < 9; ++c) {
                 if (grid.cells[r][c].value == 0 && grid.cells[r][c].candidates[v]) {
-                    colsWithCand.push_back(c);
+                    cellsWithCand.push_back({r, c});
                 }
             }
 
-            int count = colsWithCand.size();
+            int count = cellsWithCand.size();
             if (count < 2 || count > 3) continue;
 
-            // Kiểm tra xem tất cả các ô chứa v của hàng r có cùng thuộc về một Block không
-            int targetBlock = GetBlockIndex(r, colsWithCand[0]);
+            int targetBlock = GetBlockIndex(r, cellsWithCand[0].second);
             bool sameBlock = true;
             for (int i = 1; i < count; ++i) {
-                if (GetBlockIndex(r, colsWithCand[i]) != targetBlock) {
-                    sameBlock = false;
-                    break;
-                }
+                if (GetBlockIndex(r, cellsWithCand[i].second) != targetBlock) { sameBlock = false; break; }
             }
 
             if (sameBlock) {
-                bool hasEliminated = false;
+                std::vector<CandidateElimination> elims;
                 int startRow = (targetBlock / 3) * 3;
                 int startCol = (targetBlock % 3) * 3;
 
@@ -161,28 +118,15 @@ HintResult FindBoxLineReduction(SudokuGrid& grid) {
                         int bc = startCol + j;
                         if (br != r) { // Bỏ qua hàng r hiện tại
                             if (grid.cells[br][bc].value == 0 && grid.cells[br][bc].candidates[v]) {
-                                grid.cells[br][bc].candidates[v] = false;
-                                grid.cells[br][bc].candidateCount--;
-                                hasEliminated = true;
+                                elims.push_back({br, bc, v});
                             }
                         }
                     }
                 }
 
-                if (hasEliminated) {
-                    HintResult res;
-                    res.found = true;
-                    res.row = r;
-                    res.col = colsWithCand[0];
-                    res.value = 0;
-                    res.strategyName = "Box/Line Reduction (Row)";
-
-                    std::stringstream ss;
-                    ss << "Tren Hang " << r << ", so " << v 
-                       << " bat buoc phai nam trong Block " << targetBlock 
-                       << " -> Da loai bo " << v << " khoi cac o khác cua Block nay.";
-                    res.explanation = ss.str();
-                    return res;
+                if (!elims.empty()) {
+                    std::string msg = HintFormatter::BoxLineReduction(RegionType::ROW, r, targetBlock, v);
+                    return HintResult::CreateEliminateHint("Box/Line Reduction (Row)", cellsWithCand, elims, msg);
                 }
             }
         }
@@ -191,59 +135,42 @@ HintResult FindBoxLineReduction(SudokuGrid& grid) {
     // TRƯỜNG HỢP B: Quét từng CỘT để tìm sự hội tụ vào một BLOCK
     for (int c = 0; c < 9; ++c) {
         for (int v = 1; v <= 9; ++v) {
-            std::vector<int> rowsWithCand;
+            std::vector<std::pair<int, int>> cellsWithCand;
             for (int r = 0; r < 9; ++r) {
                 if (grid.cells[r][c].value == 0 && grid.cells[r][c].candidates[v]) {
-                    rowsWithCand.push_back(r);
+                    cellsWithCand.push_back({r, c});
                 }
             }
 
-            int count = rowsWithCand.size();
+            int count = cellsWithCand.size();
             if (count < 2 || count > 3) continue;
 
-            int targetBlock = GetBlockIndex(rowsWithCand[0], c);
+            int targetBlock = GetBlockIndex(cellsWithCand[0].first, c);
             bool sameBlock = true;
             for (int i = 1; i < count; ++i) {
-                if (GetBlockIndex(rowsWithCand[i], c) != targetBlock) {
-                    sameBlock = false;
-                    break;
-                }
+                if (GetBlockIndex(cellsWithCand[i].first, c) != targetBlock) { sameBlock = false; break; }
             }
 
             if (sameBlock) {
-                bool hasEliminated = false;
+                std::vector<CandidateElimination> elims;
                 int startRow = (targetBlock / 3) * 3;
                 int startCol = (targetBlock % 3) * 3;
 
-                // Xóa ứng viên v khỏi các cột KHÁC nằm bên trong Block đó
                 for (int i = 0; i < 3; ++i) {
                     for (int j = 0; j < 3; ++j) {
                         int br = startRow + i;
                         int bc = startCol + j;
                         if (bc != c) { // Bỏ qua cột c hiện tại
                             if (grid.cells[br][bc].value == 0 && grid.cells[br][bc].candidates[v]) {
-                                grid.cells[br][bc].candidates[v] = false;
-                                grid.cells[br][bc].candidateCount--;
-                                hasEliminated = true;
+                                elims.push_back({br, bc, v});
                             }
                         }
                     }
                 }
 
-                if (hasEliminated) {
-                    HintResult res;
-                    res.found = true;
-                    res.row = rowsWithCand[0];
-                    res.col = c;
-                    res.value = 0;
-                    res.strategyName = "Box/Line Reduction (Col)";
-
-                    std::stringstream ss;
-                    ss << "[Box/Line Col] Tren Cot " << c << ", so " << v 
-                       << " bat buoc phai nam trong Block " << targetBlock 
-                       << " -> Da loai bo " << v << " khoi cac o khác cua Block nay.";
-                    res.explanation = ss.str();
-                    return res;
+                if (!elims.empty()) {
+                    std::string msg = HintFormatter::BoxLineReduction(RegionType::COLUMN, c, targetBlock, v);
+                    return HintResult::CreateEliminateHint("Box/Line Reduction (Col)", cellsWithCand, elims, msg);
                 }
             }
         }

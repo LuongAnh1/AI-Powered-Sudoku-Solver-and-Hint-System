@@ -82,4 +82,4 @@ def main(image_name="image1062.jpg"):
 
 if __name__ == "__main__":
     # Bạn có thể thay đổi tên ảnh kiểm thử tại đây
-    main("image1066.jpg")
+    main("image_web6.png")

@@ -1,3 +1,9 @@
+# Lệnh biên dịch
+# cd build
+# Remove-Item -Recurse -Force *
+# cmake -DPython_EXECUTABLE=..\venv\Scripts\python.exe ..
+# cmake --build . --config Release
+
 # 1. Yêu cầu phiên bản CMake tối thiểu
 cmake_minimum_required(VERSION 3.15)
 
@@ -18,6 +24,7 @@ set(ALGO_SOURCES
     src/strategies/intersection_strategies.cpp
     src/strategies/fish_strategies.cpp
     src/strategies/wing_strategies.cpp
+    src/utils/hint_formatter.cpp
 )
 
 # =========================================================

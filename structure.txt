@@ -29,18 +29,25 @@ Ahihi/
 │   └── test_images/                # Thư mục chứa các ảnh Sudoku mẫu để test thuật toán CV
 │
 └── src/                            # THƯ MỤC CHỨA LÕI THUẬT TOÁN (C++ ENGINE)
-    ├── types.hpp                   # Định nghĩa các kiểu dữ liệu logic (Cell, Grid, HintResult)
+    ├── types.hpp                   # Định nghĩa cấu trúc dữ liệu lõi (Cell, Grid, HintResult, RegionType)
     ├── solver_engine.hpp           # Khai báo bộ chạy điều phối chính (Waterfall Orchestrator)
     ├── solver_engine.cpp           # Định nghĩa bộ chạy chính (Điều phối các thuật toán)
     ├── bindings.cpp                # File đăng ký hàm và lớp C++ xuất khẩu sang Python (Pybind11)
+    ├── DEVELOPER_GUIDE.md          # Tài liệu này hướng dẫn chi tiết về kiến trúc mã nguồn của lõi thuật toán C++ (Engine)
+    │
     ├── strategies/                 # Thư mục chứa các nhóm thuật toán logic (Tách module)
-    │   ├── strategy_manager.hpp    # Khai báo chung các hàm thuật toán để Engine gọi
-    │   ├── basic_strategies.cpp    # Cấp 1: Singles, Pairs, Triples, Quads
-    │   ├── intersection_strategies.cpp # Cấp 2: Pointing, Box/Line Reduction
-    │   ├── fish_strategies.cpp     # Cấp 3: X-Wing, Swordfish, Jellyfish
-    │   └── wing_strategies.cpp     # Cấp 4: XY-Wing, XYZ-Wing
+    │   ├── strategy_manager.hpp    # Khai báo chung các hàm thuật toán để Engine gọi (Quản lý formatter chung)
+    │   ├── basic_strategies.cpp    # Cấp 1 & Cấp 2: Singles, Subsets (Pairs, Triples, Quads)
+    │   ├── intersection_strategies.cpp # Cấp 2.5 & Cấp 3.5: Pointing, Box/Line Reduction
+    │   ├── fish_strategies.cpp     # Cấp 3 & Cấp 4: X-Wing, Swordfish, Jellyfish (Đã tối ưu hóa đệ quy chập tổ hợp)
+    │   └── wing_strategies.cpp     # Cấp 4.5: XY-Wing, XYZ-Wing
+    │
+    ├── utils/                      # Thư mục chứa các công cụ tiện ích bổ trợ (MỚI BỔ SUNG)
+    │   ├── hint_formatter.hpp      # Khai báo các hàm định dạng chuỗi giải thích cho giao diện đồ họa
+    │   └── hint_formatter.cpp      # Triển khai logic sinh chuỗi giải thích chi tiết, hỗ trợ đa ngôn ngữ
+    │
     └── tests/                      # Thư mục chứa hệ thống kiểm thử tự động (Test Cases)
-        ├── test_runner.cpp         # Hàm main() chạy kiểm thử độc lập C++ (Console App)
+        ├── test_runner.cpp         # Hàm main() chạy kiểm thử tích hợp và kiểm tra lõi C++ độc lập
         ├── unit/                   # Thư mục chứa các bài kiểm thử đơn vị (Unit Tests)
         │   ├── test_basic.cpp      # Test riêng lẻ các thuật toán Cấp 1
         │   └── test_intersection.cpp # Test riêng lẻ các thuật toán Cấp 2

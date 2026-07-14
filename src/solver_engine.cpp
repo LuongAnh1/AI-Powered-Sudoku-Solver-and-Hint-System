@@ -4,11 +4,9 @@
 
 SolverEngine::SolverEngine() {}
 
-
 //======================== THỰC HIỆN XÓA BỎ ĐỀ XUẤT SAU KHI ĐIỀN SỐ =========================
 
-// Hàm nội bộ: Xóa 1 đề xuất và giảm biến đếm (Tương đương điều kiện phủ)
-// Hàm con của PropagateConstraints
+// Hàm nội bộ: Xóa 1 đề xuất và giảm biến đếm
 void SolverEngine::RemoveCandidate(int row, int col, int value) {
     if (grid.cells[row][col].value == 0 && grid.cells[row][col].candidates[value]) {
         grid.cells[row][col].candidates[value] = false;
@@ -54,7 +52,7 @@ bool SolverEngine::PlaceValue(int row, int col, int value) {
     return true;
 }
 
-// Nhận dữ liệu ma trận đầu vào (Số 0 là ô trống), nếu ô đã có số thì gọi PlaceValue để điền và xóa các đề xuất liên quan
+// Nhận dữ liệu ma trận đầu vào (Số 0 là ô trống)
 void SolverEngine::LoadGrid(const std::vector<std::vector<int>>& input) {
     for (int r = 0; r < 9; ++r) {
         for (int c = 0; c < 9; ++c) {
@@ -65,7 +63,7 @@ void SolverEngine::LoadGrid(const std::vector<std::vector<int>>& input) {
     }
 }
 
-// In kết quả
+// In kết quả ra console
 void SolverEngine::PrintGrid() const {
     std::cout << "-----------------------\n";
     for (int r = 0; r < 9; ++r) {
@@ -79,10 +77,19 @@ void SolverEngine::PrintGrid() const {
     std::cout << "\n";
 }
 
-//======================== HÀM GỢI Ý BƯỚC TIẾP THEO VÀ GIẢI TOÁN BỘ =========================
-// Vòng lặp gợi ý theo mô hình "Thác nước" (Waterfall Model) - Chưa có thuật toán nâng cao, chỉ dùng các thuật toán cơ bản
-// Cần chỉnh sửa về sau 
-//======================== HÀM GỢI Ý BƯỚC TIẾP THEO VÀ GIẢI TOÁN BỘ =========================
+// Xuất ma trận kết quả hiện tại ra dạng vector 2D phục vụ Python
+std::vector<std::vector<int>> SolverEngine::GetGrid() const {
+    std::vector<std::vector<int>> output(9, std::vector<int>(9, 0));
+    for (int r = 0; r < 9; ++r) {
+        for (int c = 0; c < 9; ++c) {
+            output[r][c] = grid.cells[r][c].value;
+        }
+    }
+    return output;
+}
+
+//======================== HÀM GỢI Ý BƯỚC TIẾP THEO VÀ GIẢI TOÀN BỘ =========================
+
 // Vòng lặp gợi ý theo mô hình "Thác nước" (Waterfall Model)
 HintResult SolverEngine::GetNextHint() {
     HintResult result;
@@ -96,65 +103,47 @@ HintResult SolverEngine::GetNextHint() {
     result = FindHiddenPairs(grid); if (result.found) return result;
 
     // Cấp 2.5: Pointing (Chiến thuật giao lộ đầu tiên)
-    result = FindPointing(grid); if (result.found) return result; // <--- MỚI THÊM
+    result = FindPointing(grid); if (result.found) return result;
 
     // Cấp 3: Bộ ba (Naked & Hidden Triples)
     result = FindNakedTriples(grid); if (result.found) return result;
     result = FindHiddenTriples(grid); if (result.found) return result;
 
     // Cấp 3.5: Box/Line Reduction (Chiến thuật giao lộ nâng cao)
-    result = FindBoxLineReduction(grid); if (result.found) return result; // <--- MỚI THÊM
+    result = FindBoxLineReduction(grid); if (result.found) return result;
 
     // Cấp 4: Bộ bốn (Naked & Hidden Quads)
     result = FindNakedQuads(grid); if (result.found) return result;
     result = FindHiddenQuads(grid); if (result.found) return result;
 
-    // -----------------------------------------------------------
-    // CẤP 5: CÁC THUẬT TOÁN NÂNG CAO (ADVANCED STRATEGIES)
-    // -----------------------------------------------------------
-    result = FindXWing(grid); 
-    if (result.found) return result;
-
-    result = FindSwordfish(grid); 
-    if (result.found) return result;
-
-    result = FindJellyfish(grid); 
-    if (result.found) return result;
-
-    result = FindXYWing(grid); 
-    if (result.found) return result;
-
-    result = FindXYZWing(grid); 
-    if (result.found) return result;
+    // Cấp 5: Các chiến thuật nâng cao (Fish & Wings)
+    result = FindXWing(grid); if (result.found) return result;
+    result = FindSwordfish(grid); if (result.found) return result;
+    result = FindJellyfish(grid); if (result.found) return result;
+    result = FindXYWing(grid); if (result.found) return result;
+    result = FindXYZWing(grid); if (result.found) return result;
 
     return result; 
 }
 
-// // Hàm in ra các đề xuất của một ô cụ thể (dùng để debug)
-// void SolverEngine::PrintCellCandidates(int r, int c) const {
-//     std::cout << "O (" << r << "," << c << ") co cac de xuat: ";
-//     for (int i = 1; i <= 9; ++i) {
-//         if (grid.cells[r][c].candidates[i]) {
-//             std::cout << i << " ";
-//         }
-//     }
-//     std::cout << " (Tong cong: " << grid.cells[r][c].candidateCount << ")\n";
-// }
-
-// Giải toàn bộ
+// Giải toàn bộ bảng
 void SolverEngine::SolveFull() {
-    // PrintCellCandidates(0, 1);
-    // PrintCellCandidates(0, 5);
     while (grid.emptyCount > 0) {
         HintResult hint = GetNextHint();
-        // PrintCellCandidates(0, 1);
-        // PrintCellCandidates(0, 5);
         if (hint.found) {
             std::cout << "[" << hint.strategyName << "] " << hint.explanation << "\n";
-            if (hint.value > 0) {
-                PlaceValue(hint.row, hint.col, hint.value);
-            } else {
-                std::cout << "   -> Hint loai bo de xuat, khong dien so.\n";
+            
+            // 1. Thực hiện điền số chính thức nếu có
+            if (hint.fillValue > 0) {
+                PlaceValue(hint.fillRow, hint.fillCol, hint.fillValue);
+            } 
+            
+            // 2. Đồng thời áp dụng loại bỏ các ứng viên nhỏ khỏi lưới bộ nhớ để cập nhật trạng thái
+            if (!hint.eliminations.empty()) {
+                std::cout << "   -> Tien hanh loai bo " << hint.eliminations.size() << " ung vien nho.\n";
+                for (const auto& elim : hint.eliminations) {
+                    RemoveCandidate(elim.row, elim.col, elim.value);
+                }
             }
         } else {
             std::cout << "Be tac! Can them thuat toan nang cao.\n";
@@ -162,16 +151,4 @@ void SolverEngine::SolveFull() {
         }
     }
     PrintGrid();
-}
-
-// Thêm hàm này vào cuối file src/solver_engine.cpp:
-
-std::vector<std::vector<int>> SolverEngine::GetGrid() const {
-    std::vector<std::vector<int>> output(9, std::vector<int>(9, 0));
-    for (int r = 0; r < 9; ++r) {
-        for (int c = 0; c < 9; ++c) {
-            output[r][c] = grid.cells[r][c].value;
-        }
-    }
-    return output;
 }

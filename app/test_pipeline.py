@@ -61,4 +61,4 @@ def run_integration_test(image_name="image1049.jpg"):
     print(f" -> {os.path.join(debug_dir, 'cleaned_cells')}")
 
 if __name__ == "__main__":
-    run_integration_test("image_web3.png")
+    run_integration_test("image_web.png")

@@ -1,6 +1,6 @@
 # AI-Powered Sudoku Solver & Hint System
 
-Dự án **Trình giải & Gợi ý Sudoku thông minh** kết hợp sức mạnh xử lý hiệu năng cao của **C++ (Thuật toán Engine)** và sự linh hoạt của **Python (Thị giác máy tính OpenCV & Giao diện UI)**. 
+Dự án **Trình giải & Gợi ý Sudoku thông minh** kết hợp sức mạng xử lý hiệu năng cao của **C++ (Thuật toán Engine)** và sự linh hoạt của **Python (Thị giác máy tính OpenCV & Giao diện UI)**. 
 
 Khác với các trình giải Sudoku thông thường chỉ đưa ra đáp án cuối cùng bằng thuật toán vét cạn, dự án này mô phỏng **tư duy suy luận logic của con người** (như Naked/Hidden Pairs, Pointing, X-Wing...) để đưa ra **chỉ dẫn từng bước (Step-by-step Hint)** giúp người dùng học cách giải.
 
@@ -17,7 +17,15 @@ Hệ thống được thiết kế theo dạng đường ống (Pipeline) chia l
 
 ## 📁 Cấu trúc Thư mục Dự án
 
-Chi tiết tại file `structure.txt`
+Chi tiết sơ đồ các file và thư mục trong dự án được cập nhật tại file:
+👉 **[Sơ đồ cấu trúc dự án tại structure.txt](structure.txt)**
+
+---
+
+## 💻 Phát triển & Tinh chỉnh Thuật toán C++ (Developer Guide)
+
+Nếu bạn có nhu cầu đóng góp, bảo trì hoặc phát triển thêm các thuật toán logic mới cho lõi C++ (ví dụ: thêm các chiến thuật giải nâng cao hoặc thay đổi cách thức tối ưu hóa bộ nhớ), vui lòng tham khảo tài liệu hướng dẫn chi tiết dành riêng cho nhà phát triển tại:
+👉 **[Hướng dẫn phát triển thuật toán tại src/DEVELOPER_GUIDE.md](src/DEVELOPER_GUIDE.md)**
 
 ---
 
@@ -54,4 +62,3 @@ Khi đã làm việc xong và muốn quay về môi trường Python mặc đị
 ```bash
 deactivate
 ```
-*(Ký tự `(venv)` ở đầu dòng lệnh sẽ biến mất).*
