@@ -20,16 +20,22 @@ class SudokuApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("AI-Powered Sudoku Solver")
-        self.geometry("1100x700")
-        
+        # Chiều rộng 1280px tiêu chuẩn widescreen cực kỳ cân đối
+        self.geometry("1280x700")
         self.resizable(False, False)
         
-        self.grid_columnconfigure(0, weight=3, minsize=550) 
-        self.grid_columnconfigure(1, weight=2, minsize=350) 
+        self.configure(fg_color="#0F172A")
+        
+        # GIẢI PHÁP: Cột trái (0) và cột phải (2) cố định kích thước (weight=0) để giữ vị trí.
+        # Chỉ cột giữa chứa Sudoku (1) co giãn (weight=1) để chiếm không gian trống và bảo vệ viền bảng số.
+        self.grid_columnconfigure(0, weight=0, minsize=320) # Cột giải thích cố định bên trái
+        self.grid_columnconfigure(1, weight=1, minsize=540) # Cột lưới Sudoku co giãn tự do ở giữa
+        self.grid_columnconfigure(2, weight=0, minsize=380) # Cột điều khiển cố định bên phải
         self.grid_rowconfigure(0, weight=1)
 
-        self._init_left_panel()
-        self._init_right_panel()
+        self._init_left_panel()   # Thiết lập cột trái (Thương hiệu + Giải thích)
+        self._init_middle_panel() # Thiết lập cột giữa (Lưới Sudoku)
+        self._init_right_panel()  # Thiết lập cột phải (Ảnh gốc & Điều khiển)
         
         # Khởi tạo Hint Manager quản lý các bước giải đã lập lịch
         self.hint_manager = SudokuHintManager(self.sudoku_board, self.explanation_box, self.btn_next)
@@ -40,51 +46,219 @@ class SudokuApp(ctk.CTk):
         self._on_cell_click(0, 0)
 
     def _init_left_panel(self):
-        left_frame = ctk.CTkFrame(self, fg_color="transparent")
-        left_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        left_frame.grid_rowconfigure(0, weight=1) 
-        left_frame.grid_rowconfigure(1, weight=0) 
-        left_frame.grid_columnconfigure(0, weight=1)
+        """Khởi tạo cột trái: Thêm bộ nhận diện thương hiệu (Branding) và Khung giải thích"""
+        # Khung chứa dọc ghép cụm thương hiệu và giải thích làm một để căn chỉnh mượt mà
+        left_container = ctk.CTkFrame(self, fg_color="transparent")
+        left_container.grid(row=0, column=0, padx=(20, 10), pady=20, sticky="ns")
+        left_container.grid_rowconfigure(1, weight=1)
+        left_container.grid_columnconfigure(0, weight=1)
 
-        self.board_container = ctk.CTkFrame(left_frame, width=530, height=530, fg_color="#1E1E1E") 
-        self.board_container.grid(row=0, column=0, padx=10, pady=10)
-        self.board_container.grid_propagate(False)
+        # ==========================================
+        # 1. BỘ NHẬN DIỆN THƯƠNG HIỆU (BRANDING)
+        # ==========================================
+        self.branding_frame = ctk.CTkFrame(left_container, fg_color="transparent")
+        self.branding_frame.grid(row=0, column=0, sticky="w", pady=(0, 15))
         
-        self.sudoku_board = SudokuBoard(self.board_container, width=510, height=510)
-        self.sudoku_board.place(relx=0.5, rely=0.5, anchor="center")
+        self.brand_title_frame = ctk.CTkFrame(self.branding_frame, fg_color="transparent")
+        self.brand_title_frame.grid(row=0, column=0, sticky="w")
+        
+        self.brand_title_1 = ctk.CTkLabel(
+            self.brand_title_frame, 
+            text="SUDOKU", 
+            font=ctk.CTkFont(family="Segoe UI", size=24, weight="bold"), 
+            text_color="#FFFFFF"
+        )
+        self.brand_title_1.grid(row=0, column=0, sticky="w")
+        
+        self.brand_title_2 = ctk.CTkLabel(
+            self.brand_title_frame, 
+            text=" AI", 
+            font=ctk.CTkFont(family="Segoe UI", size=24, weight="bold"), 
+            text_color="#38BDF8"
+        )
+        self.brand_title_2.grid(row=0, column=1, sticky="w")
+        
+        self.brand_subtitle = ctk.CTkLabel(
+            self.branding_frame, 
+            text="Logical Deduction Engine", 
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="normal"), 
+            text_color="#64748B"
+        )
+        self.brand_subtitle.grid(row=1, column=0, sticky="w", pady=(2, 0))
 
-        self.explanation_box = ctk.CTkTextbox(left_frame, height=100, font=ctk.CTkFont(size=14))
-        self.explanation_box.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        # ==========================================
+        # 2. KHUNG GIẢI THÍCH (EXPLANATION CARD)
+        # ==========================================
+        self.explanation_card = ctk.CTkFrame(
+            left_container, 
+            width=300,
+            height=500,
+            fg_color="#1E293B", 
+            corner_radius=16, 
+            border_width=1, 
+            border_color="#334155"
+        )
+        self.explanation_card.grid(row=1, column=0, sticky="nw")
+        self.explanation_card.grid_propagate(False)
+        
+        # Cấu hình lưới 1 cột hệ thống duy nhất bên trong thẻ để triệt tiêu lỗi chèn ép chữ
+        self.explanation_card.grid_columnconfigure(0, weight=1)
+        self.explanation_card.grid_rowconfigure(1, weight=1)
+
+        # Khung phụ chứa tiêu đề (Icon + Title) giúp căn lề chính xác
+        self.header_frame = ctk.CTkFrame(self.explanation_card, fg_color="transparent")
+        self.header_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
+        self.header_frame.grid_columnconfigure(1, weight=1)
+
+        self.explanation_icon = ctk.CTkLabel(
+            self.header_frame, 
+            text="✦", # Ngôi sao vector hiển thị an toàn không lỗi font trên Windows
+            font=ctk.CTkFont(size=20), 
+            text_color="#38BDF8"
+        )
+        self.explanation_icon.grid(row=0, column=0, padx=(0, 8), sticky="w")
+
+        self.explanation_title = ctk.CTkLabel(
+            self.header_frame, 
+            text="Giải thích", 
+            font=ctk.CTkFont(family="Segoe UI", size=16, weight="bold"), 
+            text_color="#38BDF8"
+        )
+        self.explanation_title.grid(row=0, column=1, sticky="w")
+
+        # Hộp văn bản đơn cột, đảm bảo luôn cách đều hai rìa của thẻ đúng 20px
+        self.explanation_box = ctk.CTkTextbox(
+            self.explanation_card, 
+            fg_color="transparent", 
+            text_color="#E2E8F0", 
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="normal"),
+            border_width=0,
+            wrap="word"
+        )
+        self.explanation_box.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="nsew")
+        
         self.explanation_box.insert("0.0", "Hệ thống sẵn sàng. Nhấp chuột vào một ô hoặc chọn 'Nạp ảnh Sudoku'.")
         self.explanation_box.configure(state="disabled")
 
+    def _init_middle_panel(self):
+        """Khởi tạo cột giữa: Bảng Sudoku rộng rãi, không bị chèn ép hay lẹm viền"""
+        middle_frame = ctk.CTkFrame(self, fg_color="transparent")
+        # Giữ khoảng đệm cân đối xung quanh khu vực bảng số trung tâm
+        middle_frame.grid(row=0, column=1, padx=10, pady=20, sticky="nsew")
+        
+        self.board_card = ctk.CTkFrame(
+            middle_frame, 
+            width=500, 
+            height=500, 
+            fg_color="#1E293B", 
+            corner_radius=16,
+            border_width=2,
+            border_color="#2563EB"
+        ) 
+        self.board_card.place(relx=0.5, rely=0.5, anchor="center")
+        self.board_card.grid_propagate(False)
+        
+        self.sudoku_board = SudokuBoard(self.board_card, width=485, height=485)
+        self.sudoku_board.place(relx=0.5, rely=0.5, anchor="center")
+
     def _init_right_panel(self):
-        right_frame = ctk.CTkFrame(self, fg_color="#2b2b2b", corner_radius=10)
-        right_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        """Khởi tạo cột phải: Khung ảnh gốc dịch phải và cụm nút điều khiển chính"""
+        right_frame = ctk.CTkFrame(self, fg_color="transparent")
+        right_frame.grid(row=0, column=2, padx=(10, 20), pady=20, sticky="nsew")
         right_frame.grid_rowconfigure(0, weight=1)
-        right_frame.grid_rowconfigure(1, weight=0)
         right_frame.grid_columnconfigure(0, weight=1)
 
-        self.image_preview_label = ctk.CTkLabel(right_frame, text="Chưa có ảnh được nạp", fg_color="#1d1d1d", corner_radius=8)
-        self.image_preview_label.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
+        # Đã đồng bộ sửa đổi tên biến cục bộ thành thực thể self.right_card
+        self.right_card = ctk.CTkFrame(
+            right_frame, 
+            fg_color="#1E293B", 
+            corner_radius=16, 
+            border_width=1, 
+            border_color="#334155"
+        )
+        self.right_card.grid(row=0, column=0, sticky="nsew")
+        self.right_card.grid_rowconfigure(1, weight=1)
+        self.right_card.grid_columnconfigure(0, weight=1)
 
-        control_frame = ctk.CTkFrame(right_frame, fg_color="transparent")
-        control_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
+        self.image_title = ctk.CTkLabel(
+            self.right_card, 
+            text="🖼️  ẢNH SUDOKU GỐC", 
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"), 
+            text_color="#38BDF8"
+        )
+        self.image_title.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
+
+        self.image_container = ctk.CTkFrame(
+            self.right_card, 
+            fg_color="#0F172A", 
+            corner_radius=12, 
+            border_width=1, 
+            border_color="#334155"
+        )
+        self.image_container.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="nsew")
+
+        self.image_preview_label = ctk.CTkLabel(
+            self.image_container, 
+            text="Chưa có ảnh được nạp\n\nNhấp chọn nút bên dưới để tải tệp lên", 
+            font=ctk.CTkFont(family="Segoe UI", size=13),
+            text_color="#64748B"
+        )
+        self.image_preview_label.place(relx=0.5, rely=0.5, anchor="center")
+
+        control_frame = ctk.CTkFrame(self.right_card, fg_color="transparent")
+        control_frame.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew")
         control_frame.grid_columnconfigure(0, weight=1)
         control_frame.grid_columnconfigure(1, weight=1)
 
-        self.btn_load = ctk.CTkButton(control_frame, text="Nạp ảnh Sudoku", command=self._on_load_image)
-        self.btn_load.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+        button_font = ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
 
-        # Đã cấu hình liên kết nút bấm "Giải nhanh" đến phương thức _on_quick_solve
-        self.btn_solve = ctk.CTkButton(control_frame, text="Giải nhanh", fg_color="#2e7d32", hover_color="#1b5e20", command=self._on_quick_solve)
-        self.btn_solve.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+        self.btn_load = ctk.CTkButton(
+            control_frame, 
+            text="Nạp ảnh Sudoku", 
+            height=38,
+            font=button_font,
+            fg_color="#2563EB", 
+            hover_color="#1D4ED8",
+            corner_radius=8,
+            command=self._on_load_image
+        )
+        self.btn_load.grid(row=0, column=0, columnspan=2, padx=5, pady=4, sticky="ew")
 
-        self.btn_next = ctk.CTkButton(control_frame, text="Gợi ý kế tiếp", fg_color="#ef6c00", hover_color="#e65100", command=self._on_next_hint)
-        self.btn_next.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        self.btn_solve = ctk.CTkButton(
+            control_frame, 
+            text="⚡  Giải nhanh", 
+            height=38,
+            font=button_font,
+            fg_color="#10B981", 
+            hover_color="#059669",
+            corner_radius=8,
+            command=self._on_quick_solve
+        )
+        self.btn_solve.grid(row=1, column=0, padx=5, pady=4, sticky="ew")
 
-        self.btn_reset = ctk.CTkButton(control_frame, text="Làm mới bảng", fg_color="#c62828", hover_color="#b71c1c", command=self._on_reset)
-        self.btn_reset.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+        self.btn_next = ctk.CTkButton(
+            control_frame, 
+            text="💡  Gợi ý kế tiếp", 
+            height=38,
+            font=button_font,
+            fg_color="#F97316", 
+            hover_color="#EA580C",
+            corner_radius=8,
+            command=self._on_next_hint
+        )
+        self.btn_next.grid(row=1, column=1, padx=5, pady=4, sticky="ew")
+
+        self.btn_reset = ctk.CTkButton(
+            control_frame, 
+            text="🔄  Làm mới bảng", 
+            height=38,
+            font=button_font,
+            fg_color="#EF4444", 
+            hover_color="#DC2626",
+            corner_radius=8,
+            command=self._on_reset
+        )
+        self.btn_reset.grid(row=2, column=0, columnspan=2, padx=5, pady=4, sticky="ew")
 
     def _has_board_data(self) -> bool:
         """Kiểm tra xem lưới hiện tại có chứa bất kỳ giá trị số hoặc số nháp nào không"""
@@ -116,7 +290,6 @@ class SudokuApp(ctk.CTk):
             if not confirm:
                 return
 
-        # ĐỒNG BỘ: Hủy bộ lịch trình cũ để chuẩn bị nạp đề bài mới từ ảnh
         self.hint_manager.invalidate_engine()
 
         self._update_explanation_box("Đang nạp ảnh và nhận dạng chữ số... Xin vui lòng đợi.")
@@ -169,7 +342,6 @@ class SudokuApp(ctk.CTk):
             self._update_explanation_box("Đang phân tích và lập lịch trình giải trước từ đề bài nhận dạng được...")
             self.update_idletasks()
 
-            # Lập lịch giải trước toàn bộ bảng ngay sau khi nạp đề bài thành công
             self.hint_manager.prepare_solution_chain()
             
             chain_len = len(self.hint_manager.hint_chains)
@@ -228,11 +400,10 @@ class SudokuApp(ctk.CTk):
 
         self.explanation_box.configure(state="normal")
         self.explanation_box.delete("0.0", "end")
-        self.explanation_box.insert("0.0", f"Đã chọn ô ở Hàng {row + 1}, Cột {col + 1}.\nMàu xanh dương chỉ hiển thị ở vùng được chọn.")
+        self.explanation_box.insert("0.0", f"Đã chọn ô ở Hàng {row + 1}, Cột {col + 1}.\nMàu xanh dương chỉ hiển thị ô và các ô cùng hàng, cùng cột, cùng khối 3x3 với ô đang được chọn.")
         self.explanation_box.configure(state="disabled")
 
     def _on_reset(self):
-        # ĐỒNG BỘ: Thiết lập lại hoàn toàn bộ lịch trình giải trước khi dọn dẹp bảng
         self.hint_manager.invalidate_engine()
         
         self.sudoku_board.clear_all()

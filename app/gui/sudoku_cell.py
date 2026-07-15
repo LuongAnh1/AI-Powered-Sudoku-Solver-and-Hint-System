@@ -3,7 +3,7 @@ import customtkinter as ctk
 
 class SudokuCell(ctk.CTkFrame):
     def __init__(self, master, row, col, **kwargs):
-        # Đặt mặc định 100% tất cả các ô đều có màu nền trắng tinh khiết
+        # Giữ nguyên màu nền trắng tinh khiết cho ô theo thiết kế mới
         self.default_color = "#FFFFFF"
 
         super().__init__(master, fg_color=self.default_color, corner_radius=0, border_width=0, **kwargs)
@@ -30,7 +30,7 @@ class SudokuCell(ctk.CTkFrame):
             lbl.grid(row=r, column=c, sticky="nsew", padx=0, pady=0)
             self.pencil_labels[i] = lbl
 
-        # 2. Nhãn số lớn chính thức (ĐÃ PHÓNG TO LÊN 36 cực kỳ nổi bật)
+        # 2. Nhãn số lớn chính thức
         self.main_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(family="Segoe UI", size=36, weight="normal"))
         self.main_label.grid(row=0, column=0, sticky="nsew")
 

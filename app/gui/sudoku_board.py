@@ -4,7 +4,8 @@ from gui.sudoku_cell import SudokuCell
 
 class SudokuBoard(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
-        super().__init__(master, fg_color="#334155", corner_radius=0, border_width=2, border_color="#334155", **kwargs)
+        # Đổi fg_color và border_color sang màu nền tối #1E293B đồng nhất với card chứa
+        super().__init__(master, fg_color="#1E293B", corner_radius=8, border_width=3, border_color="#1E293B", **kwargs)
         
         self.grid_propagate(False)
         
@@ -15,6 +16,7 @@ class SudokuBoard(ctk.CTkFrame):
         self.cells = {}
         for sub_r in range(3):
             for sub_c in range(3):
+                # CBD5E1 tạo thành các đường lưới nhạt rõ ràng phân tách giữa các ô vuông con
                 sub_frame = ctk.CTkFrame(self, fg_color="#CBD5E1", corner_radius=0)
                 sub_frame.grid(row=sub_r, column=sub_c, sticky="nsew", padx=1.5, pady=1.5)
                 
