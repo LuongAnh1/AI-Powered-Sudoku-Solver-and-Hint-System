@@ -13,11 +13,3 @@ Pillow>=10.0.0
 
 # Thư viện chạy mô hình ONNX (tùy chọn, khuyến nghị nếu không dùng OpenCV DNN)
 # onnxruntime>=1.16.0
-
-# =========================================================
-# THƯ VIỆN BỔ SUNG CHO PHÁT TRIỂN & HUẤN LUYỆN MÔ HÌNH (R&D)
-# (Người dùng cuối không bắt buộc phải cài nếu chỉ chạy ứng dụng)
-# =========================================================
-torch>=2.0.0
-torchvision>=0.15.0
-onnx>=1.14.0

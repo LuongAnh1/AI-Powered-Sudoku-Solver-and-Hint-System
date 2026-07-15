@@ -20,7 +20,9 @@ Ahihi/
 │   │
 │   ├── gui/                        # Phân vùng quản lý giao diện (UI/UX)
 │   │   ├── __init__.py
-│   │   └── app_layout.py           # Thiết kế layout giao diện (CustomTkinter)
+│   │   ├── sudoku_cell.py          # Định nghĩa ô Sudoku đơn lẻ (hỗ trợ hiển thị số lớn và lưới số nháp)
+│   │   ├── sudoku_board.py         # Quản lý lưới 9x9 gồm 81 ô, chia thành 9 phân vùng 3x3
+│   │   └── app_layout.py           #  Lớp giao diện chính điều phối tổng thể (bảng số, thanh điều khiển, khung xem ảnh, khung log)
 │   │
 │   ├── models/                     # Thư mục lưu trữ các file Model học máy đã train
 │   │   ├── digit_model.onnx        # File đồ thị kiến trúc mạng neural ONNX
