@@ -56,25 +56,33 @@ PYBIND11_MODULE(sudoku_solver_cpp, m) {
 
     // 3. Ánh xạ lớp SolverEngine sang Python
     py::class_<SolverEngine>(m, "SolverEngine")
-        .def(py::init<>()) // Khởi tạo constructor không tham số SolverEngine()
+          .def(py::init<>()) // Khởi tạo constructor không tham số SolverEngine()
         
-        .def("load_grid", &SolverEngine::LoadGrid, 
+          .def("load_grid", &SolverEngine::LoadGrid, 
              "Nạp ma trận Sudoku đầu vào kích thước 9x9 (Số 0 đại diện ô trống)",
              py::arg("input"))
              
-        .def("solve_full", &SolverEngine::SolveFull, 
+          .def("solve_full", &SolverEngine::SolveFull, 
              "Thực hiện giải toàn bộ lưới Sudoku bằng các thuật toán")
              
-        .def("get_grid", &SolverEngine::GetGrid, 
+          .def("get_grid", &SolverEngine::GetGrid, 
              "Lấy ma trận kết quả hiện tại dưới dạng danh sách lồng 9x9 trong Python")
              
-        .def("print_grid", &SolverEngine::PrintGrid, 
+          .def("print_grid", &SolverEngine::PrintGrid, 
              "In trạng thái bảng số hiện tại ra cửa sổ dòng lệnh C++")
 
         // Ánh xạ hàm lấy gợi ý từng bước (Nếu SolverEngine của bạn có hàm này)
-        .def("get_next_hint", &SolverEngine::GetNextHint,
+           .def("get_next_hint", &SolverEngine::GetNextHint,
              "Phân tích trạng thái hiện tại và trả về bước gợi ý tối ưu tiếp theo")
              
-        .def("remove_candidate", &SolverEngine::RemoveCandidate,
-               "Xóa ứng cử viên");
+          .def("remove_candidate", &SolverEngine::RemoveCandidate,
+               "Xóa ứng cử viên")
+
+          // Đăng ký hàm lấy toàn bộ ứng cử viên của cả bảng (Khuyên dùng để tối ưu hiệu năng)
+          .def("get_grid_candidates", &SolverEngine::GetGridCandidates,
+             "Lấy toàn bộ các ứng viên của các ô trống trên bảng dưới dạng ma trận 3D")
+             
+          .def("place_value", &SolverEngine::PlaceValue, 
+             "Điền một số chính thức vào ô tọa độ (row, col) và lan truyền ràng buộc",
+             py::arg("row"), py::arg("col"), py::arg("value"));
 }

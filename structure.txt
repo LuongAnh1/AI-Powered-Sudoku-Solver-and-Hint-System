@@ -9,10 +9,16 @@ Ahihi/
 ├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án cập nhật)
 ├── app/                            # THƯ MỤC CHỨA KHỐI UI & COMPUTER VISION (PYTHON)
 │   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python (Giao diện đồ họa)
-│   ├── hint_manager.py             # Bộ điều phối trung gian (Python Controller) quản lý gợi ý
 │   ├── run_solver.py               # Kịch bản chạy tích hợp đầu-cuối thực tế (CV + C++ Solver)
 │   ├── test_pipeline.py            # Kịch bản kiểm thử quy trình xử lý ảnh và xuất 81 ảnh ô con phục vụ debug
 │   ├── sudoku_solver_cpp.cp312-win_amd64.pyd # Thư viện động C++ đã liên kết tĩnh (Gọi trực tiếp từ Python 3.12)
+│   │
+│   ├── hint_manager/               # Gói điều phối trung gian (Python Controller) quản lý gợi ý (Đã mô-đun hóa)
+│   │   ├── __init__.py             # Khai báo gói và xuất khẩu lớp chính SudokuHintManager
+│   │   ├── constants.py            # Quản lý các hằng số màu sắc hiển thị trạng thái gợi ý
+│   │   ├── gui_sync.py             # Bộ xử lý đồng bộ giao diện (đọc/ghi lưới, đếm và cập nhật số nháp)
+│   │   ├── chain_generator.py      # Bộ tương tác lõi C++ (nạp ma trận, phân tích và lập lịch chuỗi giải trước)
+│   │   └── manager.py              # Bộ điều khiển chính điều phối luồng logic gợi ý (Next Hint / Quick Solve)
 │   │
 │   ├── cv/                         # Phân vùng xử lý ảnh (Computer Vision)
 │   │   ├── __init__.py
@@ -45,7 +51,7 @@ Ahihi/
     │   ├── fish_strategies.cpp     # Cấp 3 & Cấp 4: X-Wing, Swordfish, Jellyfish (Đã tối ưu hóa đệ quy chập tổ hợp)
     │   └── wing_strategies.cpp     # Cấp 4.5: XY-Wing, XYZ-Wing
     │
-    ├── utils/                      # Thư mục chứa các công cụ tiện ích bổ trợ (MỚI BỔ SUNG)
+    ├── utils/                      # Thư mục chứa các công cụ tiện ích bổ trợ
     │   ├── hint_formatter.hpp      # Khai báo các hàm định dạng chuỗi giải thích cho giao diện đồ họa
     │   └── hint_formatter.cpp      # Triển khai logic sinh chuỗi giải thích chi tiết, hỗ trợ đa ngôn ngữ
     │

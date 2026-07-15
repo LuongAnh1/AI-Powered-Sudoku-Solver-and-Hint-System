@@ -152,3 +152,36 @@ void SolverEngine::SolveFull() {
     }
     PrintGrid();
 }
+
+// Lấy danh sách ứng cử viên hiện có của một ô cụ thể
+std::vector<int> SolverEngine::GetCellCandidates(int row, int col) const {
+    std::vector<int> activeCandidates;
+    if (row < 0 || row >= 9 || col < 0 || col >= 9) return activeCandidates;
+    
+    // Nếu ô đã điền số thì không còn ứng cử viên nháp nào cả
+    if (grid.cells[row][col].value != 0) return activeCandidates;
+
+    for (int i = 1; i <= 9; ++i) {
+        if (grid.cells[row][col].candidates[i]) {
+            activeCandidates.push_back(i);
+        }
+    }
+    return activeCandidates;
+}
+
+// Lấy toàn bộ ứng cử viên nháp của 81 ô dưới dạng mảng 3 chiều (phù hợp đổ lên GUI một lần duy nhất)
+std::vector<std::vector<std::vector<int>>> SolverEngine::GetGridCandidates() const {
+    std::vector<std::vector<std::vector<int>>> allCandidates(9, std::vector<std::vector<int>>(9));
+    for (int r = 0; r < 9; ++r) {
+        for (int c = 0; c < 9; ++c) {
+            if (grid.cells[r][c].value == 0) {
+                for (int i = 1; i <= 9; ++i) {
+                    if (grid.cells[r][c].candidates[i]) {
+                        allCandidates[r][c].push_back(i);
+                    }
+                }
+            }
+        }
+    }
+    return allCandidates;
+}

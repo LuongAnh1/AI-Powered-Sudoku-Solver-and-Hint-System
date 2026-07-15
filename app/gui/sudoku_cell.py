@@ -42,20 +42,27 @@ class SudokuCell(ctk.CTkFrame):
             lbl.bind("<Button-1>", lambda event: callback(self.row, self.col))
 
     def set_value(self, val: int, is_original=False):
-        self.main_label.tkraise()
         if val > 0:
-            # Đề gốc: Xanh hải quân đậm cổ điển (#1A365D)
-            # Số máy giải: Xanh hoàng gia sáng hiện đại (#2563EB)
+            # Nếu có giá trị chính thức, đưa nhãn số lớn lên lớp trên cùng
+            self.main_label.tkraise()
             color = "#1A365D" if is_original else "#2563EB"
             self.main_label.configure(text=str(val), text_color=color)
         else:
             self.main_label.configure(text="")
+            # Nếu giá trị là rỗng, mặc định đưa khung số nháp lên lớp trên cùng
+            self.pencil_frame.tkraise()
 
     def set_pencil_marks(self, candidates: list):
-        self.pencil_frame.tkraise()
+        # CHỈ đưa khung nháp lên lớp trên cùng nếu ô này hiện đang trống (chưa có số lớn)
+        if self.main_label.cget("text") == "":
+            self.pencil_frame.tkraise()
+        else:
+            # Ngược lại, nếu đã có số lớn thì giữ nhãn số lớn ở trên cùng để không bị che khuất
+            self.main_label.tkraise()
+            
         for val, lbl in self.pencil_labels.items():
             lbl.configure(text=str(val) if val in candidates else "")
-
+            
     def highlight(self, color_hex):
         self.configure(fg_color=color_hex)
 

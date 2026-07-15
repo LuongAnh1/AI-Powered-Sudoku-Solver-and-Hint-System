@@ -10,6 +10,11 @@ private:
 
 public:
     SolverEngine();
+    // Lấy danh sách các số nháp còn lại của một ô cụ thể
+    std::vector<int> GetCellCandidates(int row, int col) const;
+
+    // Lấy toàn bộ các số nháp của cả bảng (Ma trận 3D dạng 9x9x[Danh sách số nháp])
+    std::vector<std::vector<std::vector<int>>> GetGridCandidates() const;
 
     // Hàm nội bộ: Xóa 1 đề xuất và giảm biến đếm (Tương đương điều kiện phủ)
     void RemoveCandidate(int row, int col, int value);
