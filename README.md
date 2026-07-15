@@ -44,6 +44,11 @@ Nếu bạn có nhu cầu đóng góp, bảo trì hoặc phát triển thêm cá
 Nếu đây là lần đầu tiên bạn tải dự án này về máy, vui lòng đọc và làm theo hướng dẫn cài đặt chi tiết (bao gồm cài trình biên dịch C++ và cấu hình CMake) tại:
 👉 **[Hướng dẫn cài đặt chi tiết tại SETUP.md](SETUP.md)**
 
+Biên dịch và sử dụng lõi tính toán C++ cùng GUI Python, build file `sudoku_solver_cpp.cp312-win_amd64.pyd` theo hướng dẫn trong:
+👉 **[Developer Guide tại src/DEVELOPER_GUIDE.md](src/DEVELOPER_GUIDE.md) mục số 5**
+
+Sau khi build, copy file `.pyd` vào thư mục `app/` để `python app/main.py` có thể import module `sudoku_solver_cpp`.
+
 ---
 
 ## 🔄 Luồng làm việc hàng ngày (Workflow)

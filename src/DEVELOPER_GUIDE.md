@@ -106,3 +106,44 @@ Remove-Item -Recurse -Force *
 cmake -DPython_EXECUTABLE=..\venv\Scripts\python.exe ..
 cmake --build . --config Release
 ```
+
+### Tạo file `sudoku_solver_cpp.cp312-win_amd64.pyd`
+Nếu bạn sử dụng Python 3.12 và muốn tạo file `sudoku_solver_cpp.cp312-win_amd64.pyd` để dùng cùng ứng dụng GUI, hãy làm theo các bước sau:
+
+1. Kích hoạt môi trường ảo:
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+2. Tạo và chuyển vào thư mục `build`, rồi xóa nội dung cũ:
+```powershell
+if (-not (Test-Path build)) { New-Item -ItemType Directory -Path build }
+cd build
+Remove-Item -Recurse -Force *
+```
+3. Cấu hình CMake với Python 3.12 từ môi trường ảo:
+```powershell
+cmake -DPython_EXECUTABLE=..\venv\Scripts\python.exe ..
+```
+4. Biên dịch ở chế độ Release:
+```powershell
+cmake --build . --config Release
+```
+
+Sau khi build thành công, file `.pyd` sẽ nằm trong thư mục build tương ứng với cấu hình Release, ví dụ:
+```text
+build\Release\sudoku_solver_cpp.cp312-win_amd64.pyd
+```
+
+### Chuyển file `.pyd` vào thư mục `app/`
+Để ứng dụng GUI Python có thể nạp được module `sudoku_solver_cpp`, sao chép file `.pyd` vào thư mục `app/`:
+
+```powershell
+Copy-Item -Path .\Release\sudoku_solver_cpp.cp312-win_amd64.pyd -Destination ..\app\
+```
+
+Hoặc nếu bạn đang ở thư mục gốc của dự án sau khi build:
+```powershell
+Copy-Item -Path build\Release\sudoku_solver_cpp.cp312-win_amd64.pyd -Destination app\
+```
+
+Khi file đã ở trong `app/`, Python sẽ có thể import `sudoku_solver_cpp` trực tiếp từ `app/main.py` và các module GUI.
