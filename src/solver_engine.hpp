@@ -5,15 +5,14 @@
 class SolverEngine {
 private:
     SudokuGrid grid;
-
-    // Hàm nội bộ: Xóa 1 đề xuất và giảm biến đếm (Tương đương điều kiện phủ)
-    void RemoveCandidate(int row, int col, int value);
-    
     // Hàm nội bộ: Xóa số vừa điền khỏi gợi ý trong Hàng, Cột và Block (Lan truyền ràng buộc)
     void PropagateConstraints(int row, int col, int value);
 
 public:
     SolverEngine();
+
+    // Hàm nội bộ: Xóa 1 đề xuất và giảm biến đếm (Tương đương điều kiện phủ)
+    void RemoveCandidate(int row, int col, int value);
     
     // Nhận dữ liệu đầu vào 
     void LoadGrid(const std::vector<std::vector<int>>& input);

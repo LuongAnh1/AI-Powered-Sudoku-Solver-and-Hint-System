@@ -11,6 +11,7 @@ if app_dir not in sys.path:
 
 import customtkinter as ctk
 from gui.sudoku_board import SudokuBoard
+from hint_manager import SudokuHintManager
 
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
@@ -29,6 +30,9 @@ class SudokuApp(ctk.CTk):
 
         self._init_left_panel()
         self._init_right_panel()
+        
+        # Khởi tạo Hint Manager quản lý các bước giải đã lập lịch
+        self.hint_manager = SudokuHintManager(self.sudoku_board, self.explanation_box, self.btn_next)
         
         self.sudoku_board.register_cell_clicks(self._on_cell_click)
         
@@ -72,10 +76,11 @@ class SudokuApp(ctk.CTk):
         self.btn_load = ctk.CTkButton(control_frame, text="Nạp ảnh Sudoku", command=self._on_load_image)
         self.btn_load.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
 
-        self.btn_solve = ctk.CTkButton(control_frame, text="Giải nhanh", fg_color="#2e7d32", hover_color="#1b5e20")
+        # Đã cấu hình liên kết nút bấm "Giải nhanh" đến phương thức _on_quick_solve
+        self.btn_solve = ctk.CTkButton(control_frame, text="Giải nhanh", fg_color="#2e7d32", hover_color="#1b5e20", command=self._on_quick_solve)
         self.btn_solve.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        self.btn_next = ctk.CTkButton(control_frame, text="Gợi ý kế tiếp", fg_color="#ef6c00", hover_color="#e65100")
+        self.btn_next = ctk.CTkButton(control_frame, text="Gợi ý kế tiếp", fg_color="#ef6c00", hover_color="#e65100", command=self._on_next_hint)
         self.btn_next.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
         self.btn_reset = ctk.CTkButton(control_frame, text="Làm mới bảng", fg_color="#c62828", hover_color="#b71c1c", command=self._on_reset)
@@ -111,6 +116,9 @@ class SudokuApp(ctk.CTk):
             if not confirm:
                 return
 
+        # ĐỒNG BỘ: Hủy bộ lịch trình cũ để chuẩn bị nạp đề bài mới từ ảnh
+        self.hint_manager.invalidate_engine()
+
         self._update_explanation_box("Đang nạp ảnh và nhận dạng chữ số... Xin vui lòng đợi.")
         self.update_idletasks()
 
@@ -144,7 +152,7 @@ class SudokuApp(ctk.CTk):
         try:
             warped_grid = find_sudoku_grid(file_path, output_size=450)
             if warped_grid is None:
-                raise ValueError("Không phát hiện thấy khung lưới Sudoku hợp lệ trong ảnh.")
+                raise ValueError("Không phát hiện thấy lưới Sudoku hợp lệ trong ảnh.")
 
             cells_9x9 = extract_cells_smart(warped_grid, output_size=450, margin=4)
 
@@ -158,7 +166,24 @@ class SudokuApp(ctk.CTk):
                     if val > 0:
                         self.sudoku_board.get_cell(r, c).set_value(val, is_original=True)
 
-            self._update_explanation_box("Tải ảnh và nhận diện lưới Sudoku thành công.")
+            self._update_explanation_box("Đang phân tích và lập lịch trình giải trước từ đề bài nhận dạng được...")
+            self.update_idletasks()
+
+            # Lập lịch giải trước toàn bộ bảng ngay sau khi nạp đề bài thành công
+            self.hint_manager.prepare_solution_chain()
+            
+            chain_len = len(self.hint_manager.hint_chains)
+            if chain_len > 0:
+                self._update_explanation_box(
+                    f"Nhận dạng ảnh thành công và lập lịch trước {chain_len} bước giải logic.\n"
+                    "Nhấn 'Gợi ý kế tiếp' để xem từng bước phân tích."
+                )
+            else:
+                self._update_explanation_box(
+                    "Nhận dạng ảnh thành công nhưng không thể tự động lập lịch giải.\n"
+                    "Có thể đề bài không có lời giải logic duy nhất hoặc cần thuật toán quay lui."
+                )
+
             self._on_cell_click(0, 0)
 
         except Exception as e:
@@ -172,8 +197,22 @@ class SudokuApp(ctk.CTk):
         self.explanation_box.insert("0.0", text)
         self.explanation_box.configure(state="disabled")
 
+    def _on_next_hint(self):
+        """Gọi xử lý bước gợi ý kế tiếp thông qua bộ điều phối HintManager"""
+        self.hint_manager.handle_next_hint()
+
+    def _on_quick_solve(self):
+        """Giải nhanh toàn bộ các ô số chính thức dựa trên bộ lịch trình giải trước"""
+        if not self._has_board_data():
+            messagebox.showwarning("Bảng trống", "Không có dữ liệu đề bài để tiến hành giải nhanh.")
+            return
+        self.hint_manager.quick_solve()
+
     def _on_cell_click(self, row, col):
         """Xử lý sự kiện click ô thông minh (Phân biệt rõ nét màu highlight và nền)"""
+        if self.hint_manager.state == "SHOWING_HINT":
+            self.hint_manager.reset_state()
+
         box_r, box_c = (row // 3) * 3, (col // 3) * 3
         
         for r in range(9):
@@ -193,6 +232,9 @@ class SudokuApp(ctk.CTk):
         self.explanation_box.configure(state="disabled")
 
     def _on_reset(self):
+        # ĐỒNG BỘ: Thiết lập lại hoàn toàn bộ lịch trình giải trước khi dọn dẹp bảng
+        self.hint_manager.invalidate_engine()
+        
         self.sudoku_board.clear_all()
         self.explanation_box.configure(state="normal")
         self.explanation_box.delete("0.0", "end")

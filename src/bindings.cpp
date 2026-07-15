@@ -73,5 +73,8 @@ PYBIND11_MODULE(sudoku_solver_cpp, m) {
 
         // Ánh xạ hàm lấy gợi ý từng bước (Nếu SolverEngine của bạn có hàm này)
         .def("get_next_hint", &SolverEngine::GetNextHint,
-             "Phân tích trạng thái hiện tại và trả về bước gợi ý tối ưu tiếp theo");
+             "Phân tích trạng thái hiện tại và trả về bước gợi ý tối ưu tiếp theo")
+             
+        .def("remove_candidate", &SolverEngine::RemoveCandidate,
+               "Xóa ứng cử viên");
 }

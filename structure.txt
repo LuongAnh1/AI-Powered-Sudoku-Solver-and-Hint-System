@@ -9,6 +9,7 @@ Ahihi/
 ├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án cập nhật)
 ├── app/                            # THƯ MỤC CHỨA KHỐI UI & COMPUTER VISION (PYTHON)
 │   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python (Giao diện đồ họa)
+│   ├── hint_manager.py             # Bộ điều phối trung gian (Python Controller) quản lý gợi ý
 │   ├── run_solver.py               # Kịch bản chạy tích hợp đầu-cuối thực tế (CV + C++ Solver)
 │   ├── test_pipeline.py            # Kịch bản kiểm thử quy trình xử lý ảnh và xuất 81 ảnh ô con phục vụ debug
 │   ├── sudoku_solver_cpp.cp312-win_amd64.pyd # Thư viện động C++ đã liên kết tĩnh (Gọi trực tiếp từ Python 3.12)
