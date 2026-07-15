@@ -6,12 +6,13 @@ Tài liệu này hướng dẫn chi tiết về kiến trúc mã nguồn của l
 
 ## 1. Kiến trúc tách lớp (Layered Architecture)
 
-Lõi C++ được thiết kế theo nguyên tắc Tách biệt mối quan tâm (Separation of Concerns) và Bất biến trạng thái khi truy vấn (Read-only Queries). Hệ thống chia làm 4 thành phần chính:
+Lõi C++ được thiết kế theo nguyên tắc Tách biệt mối quan tâm (Separation of Concerns) và Bất biến trạng thái khi truy vấn (Read-only Queries). Hệ thống chia làm 5 thành phần chính:
 
 1. Thành phần Dữ liệu Lõi (`src/types.hpp`): Định nghĩa các cấu trúc dữ liệu nguyên thủy như Cell, Grid, RegionType (Enum) và cấu trúc dữ liệu đầu ra HintResult.
 2. Thành phần Định dạng Hiển thị (`src/utils/hint_formatter`): Chuyên trách việc sinh chuỗi giải thích (explanation) dựa trên dữ liệu truyền vào. Lớp thuật toán không tự tạo văn bản giải thích trực tiếp để phục vụ khả năng bản địa hóa (đa ngôn ngữ) về sau.
 3. Thành phần Chiến thuật (`src/strategies/`): Chứa các module thuật toán độc lập. Các hàm này nhận vào bảng SudokuGrid và chỉ đọc trạng thái để tìm kiếm mô hình logic, sau đó trả về cấu trúc HintResult.
 4. Thành phần Orchestrator (`src/solver_engine`): Điều phối luồng chạy thác nước (Waterfall). Đây là nơi duy nhất thực hiện việc thay đổi trạng thái của lưới (PlaceValue, RemoveCandidate) khi nhận được phản hồi hành động từ HintResult.
+5. Thành phần Cầu nối (`src/bindings.cpp`): Đăng ký xuất khẩu các lớp dữ liệu và hàm C++ sang Python qua thư viện Pybind11 dưới dạng file `.pyd`.
 
 ---
 
@@ -36,50 +37,70 @@ Ví dụ khi thêm chiến thuật "XY-Chain" vào hệ thống:
 
 Bước A: Định nghĩa câu giải thích trong HintFormatter
 1. Mở file `src/utils/hint_formatter.hpp` và khai báo hàm định dạng:
-```code
+```cpp
 static std::string XYChain(const std::vector<std::pair<int, int>>& chainCells, int v);
 ```
 
 2. Mở file `src/utils/hint_formatter.cpp` và triển khai chi tiết việc ghép chuỗi:
-```code
+```cpp
 std::string HintFormatter::XYChain(const std::vector<std::pair<int, int>>& chainCells, int v) {
-    return "Tim thay XY-Chain gom " + std::to_string(chainCells.size()) + " o... loai bo so " + std::to_string(v);
+    return "Tìm thấy XY-Chain gồm " + std::to_string(chainCells.size()) + " ô... loại bỏ số " + std::to_string(v);
 }
 ```
 
 Bước B: Khai báo thuật toán trong Strategy Manager
 - Mở file `src/strategies/strategy_manager.hpp` và khai báo nguyên mẫu hàm:
-```code
+```cpp
 HintResult FindXYChain(SudokuGrid& grid);
 ```
 
 Bước C: Triển khai thuật toán
 - Viết logic tìm kiếm trong file .cpp thích hợp trong thư mục `src/strategies/`. Khi tìm thấy mô hình thành công, thu thập các ô tạo thành mô hình vào mảng patternCells, các ứng viên cần xóa vào mảng `elims`. Gọi hàm Factory để trả về kết quả:
-```code
+```cpp
 std::string msg = HintFormatter::XYChain(chainCells, v);
 return HintResult::CreateEliminateHint("XY-Chain", patternCells, elims, msg);
 ```
 
 Bước D: Đăng ký vào Waterfall Orchestrator
 - Mở file `src/solver_engine.cpp`, tìm đến hàm `GetNextHint()`. Chèn thuật toán của bạn vào tầng ưu tiên mong muốn trong mô hình thác nước:
-```code
+```cpp
 result = FindXYChain(grid); if (result.found) return result;
 ```
 
 ---
 
-## 4. Hướng dẫn Biên dịch & Kiểm thử nhanh
+## 4. Quy trình Đăng ký cổng giao tiếp Pybind11 (Bindings)
+
+Khi bổ sung bất kỳ hàm Thành viên (Getter/Setter) hoặc cấu trúc dữ liệu mới nào trong lớp `SolverEngine` mà phía Python cần gọi trực tiếp, bắt buộc phải đăng ký trong file `src/bindings.cpp`.
+
+Quy tắc đăng ký:
+1. Đối với cấu trúc dữ liệu mới: Đăng ký kiểu lớp (`py::class_<T>`) và định nghĩa các trường thuộc tính chỉ đọc/ghi thích hợp.
+2. Đối với phương thức của SolverEngine: Đăng ký bằng hàm `.def("tên_hàm_python", &SolverEngine::TênHàmC++)`.
+
+*Ví dụ:* Khi cần cho phép gọi hàm điền số và lấy thông tin ứng viên từ Python:
+```cpp
+py::class_<SolverEngine>(m, "SolverEngine")
+    .def("place_value", &SolverEngine::PlaceValue, "Đặt số chính thức và lan truyền ràng buộc")
+    .def("get_grid_candidates", &SolverEngine::GetGridCandidates, "Lấy toàn bộ số nháp hiện hành");
+```
+
+---
+
+## 5. Hướng dẫn Biên dịch & Kiểm thử nhanh
 
 Cách 1: Biên dịch kiểm thử tích hợp độc lập (C++ Console)
 Chạy lệnh sau tại thư mục gốc để biên dịch file exe kiểm tra nhanh logic thuật toán mà không cần Python:
-```code
+```bash
 g++ -std=c++17 src/tests/test_runner.cpp src/solver_engine.cpp src/utils/hint_formatter.cpp src/strategies/*.cpp -o test_engine.exe
 ./test_engine.exe
 ```
+*(Lưu ý: Nếu chạy lệnh trên trong Windows PowerShell và gặp lỗi wildcard không nhận diện được ký tự `*`, hãy chuyển sang sử dụng Git Bash hoặc liệt kê chi tiết các đường dẫn tệp tin `.cpp` cần biên dịch).*
 
 Cách 2: Đóng gói thư viện động cho Python (.pyd)
-Sử dụng CMake để biên dịch và tự động liên kết tĩnh các thư viện chuẩn cho môi trường Windows:
-```code
+Sử dụng CMake từ PowerShell để biên dịch và tự động liên kết tĩnh các thư viện chuẩn cho môi trường Windows:
+```powershell
+# Tạo thư mục build nếu chưa tồn tại và di chuyển vào trong
+if (-not (Test-Path build)) { New-Item -ItemType Directory -Path build }
 cd build
 Remove-Item -Recurse -Force *
 cmake -DPython_EXECUTABLE=..\venv\Scripts\python.exe ..
