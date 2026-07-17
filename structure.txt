@@ -1,17 +1,21 @@
 ```code
-Ahihi/
+AI-Powered Sudoku Solver & Hint System/
 ├── .gitignore                      # Cấu hình các file và thư mục bỏ qua không đẩy lên Git
+├── .dockerignore                   # Cấu hình các file và thư mục không sao chép vào Docker khi xây dựng Image
+├── Dockerfile                      # Cấu hình biên dịch đa giai đoạn (Multi-stage Build) tối ưu dung lượng cực nhẹ cho Docker
+├── docker-compose.yml              # Cấu hình quản lý và khởi chạy nhanh Web Server tự động chỉ bằng một câu lệnh
 ├── CMakeLists.txt                  # Cấu hình biên dịch mã nguồn C++ (C++ Engine & Pybind11 Bridge)
 ├── requirements.txt                # Quản lý thư viện Python chạy ứng dụng chính (OpenCV, CustomTkinter...)
 ├── requirements-dev.txt            # Thư viện phục vụ R&D huấn luyện mô hình (PyTorch, ONNX, onnxscript...)
 ├── README.md                       # Tài liệu giới thiệu dự án & Luồng làm việc hàng ngày
 ├── SETUP.md                        # Tài liệu hướng dẫn cài đặt compiler & môi trường ban đầu
-├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án cập nhật)
+├── structure.txt                   # Sơ đồ cấu trúc thư mục này (Bản đồ dự án cập nhật mới nhất)
 ├── app/                            # THƯ MỤC CHỨA KHỐI UI & COMPUTER VISION (PYTHON)
-│   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python (Giao diện đồ họa)
+│   ├── main.py                     # Điểm khởi chạy chính của ứng dụng Python (Giao diện đồ họa Desktop - CustomTkinter)
+│   ├── api_server.py               # Máy chủ Web API (FastAPI) tích hợp sẵn giao diện Web tương tác đầy đủ tính năng giải số nháp
 │   ├── run_solver.py               # Kịch bản chạy tích hợp đầu-cuối thực tế (CV + C++ Solver)
 │   ├── test_pipeline.py            # Kịch bản kiểm thử quy trình xử lý ảnh và xuất 81 ảnh ô con phục vụ debug
-│   ├── sudoku_solver_cpp.cp312-win_amd64.pyd # Thư viện động C++ đã liên kết tĩnh (Gọi trực tiếp từ Python 3.12)
+│   ├── sudoku_solver_cpp.cp312-win_amd64.pyd # Thư viện động C++ đã liên kết tĩnh (Gọi trực tiếp từ Python 3.12 trên Windows)
 │   │
 │   ├── hint_manager/               # Gói điều phối trung gian (Python Controller) quản lý gợi ý (Đã mô-đun hóa)
 │   │   ├── __init__.py             # Khai báo gói và xuất khẩu lớp chính SudokuHintManager
@@ -25,11 +29,11 @@ Ahihi/
 │   │   ├── detector.py             # Tiền xử lý, tìm lưới 9x9, căn góc và cắt 81 ô vuông
 │   │   └── recognizer.py           # Nhận diện chữ số (OCR), lọc chữ số ứng viên (Pencil Marks)
 │   │
-│   ├── gui/                        # Phân vùng quản lý giao diện (UI/UX)
+│   ├── gui/                        # Phân vùng quản lý giao diện (UI/UX Desktop App)
 │   │   ├── __init__.py
 │   │   ├── sudoku_cell.py          # Định nghĩa ô Sudoku đơn lẻ (hỗ trợ hiển thị số lớn và lưới số nháp)
 │   │   ├── sudoku_board.py         # Quản lý lưới 9x9 gồm 81 ô, chia thành 9 phân vùng 3x3
-│   │   └── app_layout.py           #  Lớp giao diện chính điều phối tổng thể (bảng số, thanh điều khiển, khung xem ảnh, khung log)
+│   │   └── app_layout.py           # Lớp giao diện chính điều phối tổng thể (bảng số, thanh điều khiển, khung xem ảnh, khung log)
 │   │
 │   ├── models/                     # Thư mục lưu trữ các file Model học máy đã train
 │   │   ├── digit_model.onnx        # File đồ thị kiến trúc mạng neural ONNX

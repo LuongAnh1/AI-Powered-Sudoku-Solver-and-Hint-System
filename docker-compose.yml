@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  sudoku-solver:
+    image: luonganh1/sudoku-solver:v2 # <--- Đổi thành luonganh1 để khớp với Docker Hub
+    container_name: sudoku-solver-web
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

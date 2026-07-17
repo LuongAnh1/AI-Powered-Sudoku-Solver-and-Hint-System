@@ -1,0 +1,6 @@
+build/
+.git/
+__pycache__/
+*.pyd
+*.exe
+.vscode/
