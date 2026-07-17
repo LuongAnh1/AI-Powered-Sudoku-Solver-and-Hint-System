@@ -4,3 +4,13 @@ __pycache__/
 *.pyd
 *.exe
 .vscode/
+
+# Bổ sung các thư mục môi trường ảo Python cục bộ (vô cùng quan trọng)
+venv/
+.venv/
+env/
+
+# Bổ sung file thư viện động nếu bạn lỡ biên dịch thử ở máy local
+*.so
+*.dll
+*.dylib

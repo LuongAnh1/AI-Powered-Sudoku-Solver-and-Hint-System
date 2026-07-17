@@ -3,29 +3,30 @@
 # =========================================================
 FROM python:3.12-slim AS builder
 
-# Cài đặt các công cụ biên dịch bắt buộc
-RUN apt-get update && apt-get install -y \
+# 1. Cài đặt các công cụ biên dịch bắt buộc (Thêm cờ --no-install-recommends)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 
-# Sao chép file cấu hình và thư mục mã nguồn C++
-COPY CMakeLists.txt .
-COPY src/ ./src/
+# 2. TỐI ƯU CACHE: Sao chép requirements và cài pybind11 TRƯỚC
 COPY requirements.txt .
-
-# Cài đặt pybind11 cần cho việc biên dịch
 RUN pip install --no-cache-dir pybind11
 
-# Tiến hành loại bỏ cờ tĩnh và biên dịch ra file .so
+# 3. Sao chép file cấu hình và thư mục mã nguồn C++ SAU
+COPY CMakeLists.txt .
+COPY src/ ./src/
+
+# 4. Tiến hành loại bỏ cờ tĩnh, biên dịch và nén file .so (bằng lệnh strip)
 RUN sed -i 's/-static-libgcc//g' CMakeLists.txt || true && \
     sed -i 's/-static-libstdc++//g' CMakeLists.txt || true && \
     sed -i 's/-static//g' CMakeLists.txt || true && \
     mkdir build && cd build && \
     cmake .. && \
-    make -j$(nproc)
+    make -j$(nproc) && \
+    strip sudoku_solver_cpp*.so || true
 
 
 # =========================================================
@@ -33,23 +34,23 @@ RUN sed -i 's/-static-libgcc//g' CMakeLists.txt || true && \
 # =========================================================
 FROM python:3.12-slim
 
-# Chỉ cài đặt thư viện chạy ngầm tối giản cần cho OpenCV
-RUN apt-get update && apt-get install -y \
+# 1. Chỉ cài đặt thư viện chạy ngầm tối giản cần cho OpenCV (Thêm cờ --no-install-recommends)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 
-# Sao chép và cài đặt các thư viện Python cần thiết
+# 2. TỐI ƯU CACHE: Cài đặt thư viện Python trước khi sao chép toàn bộ code
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir fastapi uvicorn python-multipart
 
-# Chỉ sao chép mã nguồn Python và Model AI của ứng dụng
+# 3. Chỉ sao chép mã nguồn Python và Model AI của ứng dụng vào sau cùng
 COPY app/ ./app/
 
-# SAO CHÉP CHỈ FILE BIÊN DỊCH .so TỪ GIAI ĐOẠN 1 SANG
+# 4. SAO CHÉP CHỈ FILE BIÊN DỊCH .so ĐÃ BIÊN DỊCH TỪ GIAI ĐOẠN 1 SANG
 COPY --from=builder /workspace/build/sudoku_solver_cpp*.so ./app/
 
 WORKDIR /workspace/app
