@@ -1,0 +1,114 @@
+name: Package and Release Desktop Apps
+
+on:
+  push:
+    tags:
+      - 'v*' # Tự động chạy khi bạn push thẻ phiên bản mới (ví dụ: v1.0.0)
+  workflow_dispatch: # Cho phép bạn bấm nút kích hoạt chạy thủ công trên web GitHub
+
+permissions:
+  contents: write # Cấp quyền cho GitHub Actions tạo bản Release và tải file lên
+
+jobs:
+  build-and-package:
+    name: Build and Package on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      # 1. Tải mã nguồn về máy ảo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Thiết lập môi trường Python 3.12
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Cài đặt các thư viện cần thiết
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller pybind11
+
+      # 4. Tự động biên dịch lõi C++ (Engine) tương thích với hệ điều hành đang chạy
+      - name: Build C++ Engine (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --config Release
+          copy Release\sudoku_solver_cpp*.pyd ..\app\
+        shell: pwsh
+
+      - name: Build C++ Engine (Unix - Mac & Linux)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+          cp sudoku_solver_cpp*.so ../app/
+
+      # 5. Chạy PyInstaller đóng gói ứng dụng
+      - name: Package with PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --add-data "app/models;models" --add-binary "app/sudoku_solver_cpp*.pyd;." app/main.py
+          rename-item dist/main.exe SudokuSolver-Windows.exe
+        shell: pwsh
+
+      - name: Package with PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --add-data "app/models:models" --add-binary "app/sudoku_solver_cpp*.so:." app/main.py
+          mv dist/main dist/SudokuSolver-Linux
+
+      - name: Package with PyInstaller (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --add-data "app/models:models" --add-binary "app/sudoku_solver_cpp*.so:." app/main.py
+          # macOS app bundle cần nén thành file .zip để người dùng tải về không bị lỗi phân quyền
+          zip -r SudokuSolver-macOS.zip dist/main.app
+
+      # 6. Lưu vết (Artifacts) tạm thời sản phẩm đầu ra của 3 máy ảo
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-binaries-${{ matrix.os }}
+          path: |
+            dist/SudokuSolver-Windows.exe
+            dist/SudokuSolver-Linux
+            SudokuSolver-macOS.zip
+          if-no-files-found: ignore
+
+  create-release:
+    name: Create GitHub Release
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Tải toàn bộ sản phẩm của 3 máy ảo về
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # 2. Gom các file vào 1 thư mục chung
+      - name: Flatten folder structure
+        run: |
+          mkdir release-assets
+          find artifacts -type f -exec cp {} release-assets/ \;
+          ls -l release-assets/
+
+      # 3. Tự động tạo bản Release trên GitHub và đính kèm 3 file chạy của 3 hệ điều hành
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Tự động cấp quyền, bạn không cần cấu hình thêm gì cả
