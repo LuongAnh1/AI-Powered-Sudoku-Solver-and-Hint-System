@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
-    幕steps:
+    steps:
       # 1. Tải mã nguồn về máy ảo
       - name: Checkout code
         uses: actions/checkout@v4
