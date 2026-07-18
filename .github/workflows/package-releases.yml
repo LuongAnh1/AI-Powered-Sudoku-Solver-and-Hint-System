@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
-    steps:
+    幕steps:
       # 1. Tải mã nguồn về máy ảo
       - name: Checkout code
         uses: actions/checkout@v4
@@ -57,6 +57,8 @@ jobs:
       - name: Build C++ Engine (Unix - Mac & Linux)
         if: matrix.os != 'windows-latest'
         run: |
+          # Dùng Python để tự động dọn dẹp cờ liên kết tĩnh - Hoạt động hoàn hảo trên cả Linux và Mac
+          python -c "p='CMakeLists.txt'; t=open(p).read().replace('-static-libgcc','').replace('-static-libstdc++','').replace('-static',''); open(p,'w').write(t)"
           mkdir build
           cd build
           cmake ..
