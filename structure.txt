@@ -1,5 +1,9 @@
 ```code
 AI-Powered Sudoku Solver & Hint System/
+├── .github/                        # Thư mục cấu hình GitHub tự động hóa (Workflows)
+│   └── workflows/                  # Thư mục chứa các tệp kịch bản CI/CD
+│       ├── docker-ci.yml           # Tự động hóa đóng gói và đẩy Docker Image tối ưu nhất lên Docker Hub
+│       └── package-releases.yml    # Tự động hóa biên dịch chéo đa nền tảng và xuất bản GitHub Releases (Win/Mac/Linux)
 ├── .gitignore                      # Cấu hình các file và thư mục bỏ qua không đẩy lên Git
 ├── .dockerignore                   # Cấu hình các file và thư mục không sao chép vào Docker khi xây dựng Image
 ├── Dockerfile                      # Cấu hình biên dịch đa giai đoạn (Multi-stage Build) tối ưu dung lượng cực nhẹ cho Docker
