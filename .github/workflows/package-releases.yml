@@ -114,10 +114,15 @@ jobs:
           find artifacts -type f -exec cp {} release-assets/ \;
           ls -l release-assets/
 
-      # 3. Tự động tạo bản Release trên GitHub và đính kèm 3 file chạy của 3 hệ điều hành
+      # 3. Tự động tạo bản Release trên GitHub (Có cơ chế tự đặt tag dự phòng khi chạy thủ công)
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           files: release-assets/*
+          # Nếu chạy bằng thẻ tag, lấy tên tag đó. Nếu chạy thủ công bằng nút bấm, lấy tên dự phòng 'latest-build'
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest-build' }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Latest Desktop Build' }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

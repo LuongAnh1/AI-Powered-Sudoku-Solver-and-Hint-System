@@ -13,3 +13,7 @@ Pillow>=10.0.0
 
 # Thư viện chạy mô hình ONNX (tùy chọn, khuyến nghị nếu không dùng OpenCV DNN)
 # onnxruntime>=1.16.0
+
+fastapi
+uvicorn
+python-multipart
