@@ -39,16 +39,14 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
-      # Bước 4: Biên dịch chương trình chạy test (test_runner)
-      # (Mục tiêu 'test_runner' được định nghĩa trong tệp CMakeLists.txt của bạn)
+      # Bước 4: Biên dịch chương trình chạy test (sudoku_test)
+      # ĐÃ CẬP NHẬT: Đổi từ test_runner sang sudoku_test cho khớp với CMakeLists.txt
       - name: Build Test Executable
-        run: cmake --build build --target test_runner
+        run: cmake --build build --target sudoku_test
 
       # Bước 5: Chạy các ca kiểm thử tự động (Unit Tests & Integration Tests)
-      # Hệ thống sẽ đối chiếu kết quả giải của thuật toán mới với các đáp án mẫu
+      # ĐÃ CẬP NHẬT: Đổi tên file thực thi cần chạy thành sudoku_test
       - name: Run Algorithm Tests
         run: |
-          # Di chuyển vào thư mục build và chạy file thực thi kiểm thử
           cd build
-          ./tests/test_runner || ./test_runner || ./bin/test_runner
-          # Lệnh trên sẽ tự tìm file test_runner tùy thuộc vào cách CMake xuất đầu ra của bạn
+          ./sudoku_test || ./tests/sudoku_test || ./bin/sudoku_test
