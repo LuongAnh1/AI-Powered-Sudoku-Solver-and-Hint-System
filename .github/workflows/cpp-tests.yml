@@ -1,0 +1,54 @@
+name: C++ Algorithm Testing CI
+
+# Workflow này sẽ tự động chạy khi:
+# 1. Có người push code trực tiếp lên dev hoặc các nhánh tính năng (feat/*, fix/*)
+# 2. Có người tạo Pull Request xin gộp code vào nhánh dev
+on:
+  push:
+    branches:
+      - dev
+      - 'feat/**'
+      - 'fix/**'
+    paths:
+      - 'src/**'            # Chỉ chạy khi có thay đổi trong thư mục chứa lõi C++
+      - 'CMakeLists.txt'    # Hoặc khi thay đổi cấu hình biên dịch C++
+  pull_request:
+    branches:
+      - dev
+    paths:
+      - 'src/**'
+      - 'CMakeLists.txt'
+
+jobs:
+  test-cpp-core:
+    name: Build & Run C++ Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Bước 1: Tải mã nguồn về máy ảo Ubuntu
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Bước 2: Cài đặt trình biên dịch GCC và công cụ CMake
+      - name: Install Compiler & CMake
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
+      # Bước 3: Cấu hình CMake
+      - name: Configure CMake
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      # Bước 4: Biên dịch chương trình chạy test (test_runner)
+      # (Mục tiêu 'test_runner' được định nghĩa trong tệp CMakeLists.txt của bạn)
+      - name: Build Test Executable
+        run: cmake --build build --target test_runner
+
+      # Bước 5: Chạy các ca kiểm thử tự động (Unit Tests & Integration Tests)
+      # Hệ thống sẽ đối chiếu kết quả giải của thuật toán mới với các đáp án mẫu
+      - name: Run Algorithm Tests
+        run: |
+          # Di chuyển vào thư mục build và chạy file thực thi kiểm thử
+          cd build
+          ./tests/test_runner || ./test_runner || ./bin/test_runner
+          # Lệnh trên sẽ tự tìm file test_runner tùy thuộc vào cách CMake xuất đầu ra của bạn
