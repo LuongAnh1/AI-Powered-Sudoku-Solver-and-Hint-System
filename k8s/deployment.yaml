@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sudoku-api-deployment
+  labels:
+    app: sudoku-ai
+spec:
+  replicas: 2  # Chạy song song 2 Pods để chia tải
+  selector:
+    matchLabels:
+      app: sudoku-ai
+  template:
+    metadata:
+      labels:
+        app: sudoku-ai
+    spec:
+      containers:
+      - name: sudoku-api
+        # Đổi 'username_cua_ban' thành username Docker Hub của bạn (ví dụ: luonganh1/sudoku-solver:latest)
+        # Hoặc nếu chưa push lên Docker Hub, dùng image local bạn vừa build bằng Docker
+        image: luonganh1/sudoku-solver:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000 # Cổng FastAPI trong Dockerfile của bạn
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi" # Giới hạn RAM vì có mô hình AI ONNX
+            cpu: "500m"
