@@ -24,8 +24,8 @@ spec:
         - containerPort: 8000 # Cổng FastAPI trong Dockerfile của bạn
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "512Mi"   # Tăng mức tối thiểu RAM lên 512MB
+            cpu: "500m"       # Mức CPU tối thiểu (0.5 nhân)
           limits:
-            memory: "512Mi" # Giới hạn RAM vì có mô hình AI ONNX
-            cpu: "500m"
+            memory: "1Gi"     # Tăng trần RAM lên 1GB (cho OpenCV load ảnh thoải mái)
+            cpu: "1000m"    # Tăng trần CPU lên 1 NGUYÊN NHÂN (1000m = 1 vCPU) giúp AI nhận diện siêu nhanh!
