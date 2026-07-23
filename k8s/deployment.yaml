@@ -24,8 +24,8 @@ spec:
         - containerPort: 8000 # Cổng FastAPI trong Dockerfile của bạn
         resources:
           requests:
-            memory: "512Mi"   # Tăng mức tối thiểu RAM lên 512MB
-            cpu: "500m"       # Mức CPU tối thiểu (0.5 nhân)
+            memory: "256Mi"
+            cpu: "100m"     # Đặt thấp (0.1 CPU) để K8s dễ dàng duyệt cho Pod mọc lên
           limits:
-            memory: "1Gi"     # Tăng trần RAM lên 1GB (cho OpenCV load ảnh thoải mái)
-            cpu: "1000m"    # Tăng trần CPU lên 1 NGUYÊN NHÂN (1000m = 1 vCPU) giúp AI nhận diện siêu nhanh!
+            memory: "1Gi"
+            cpu: "1000m"    # Giữ nguyên 1 vCPU để xử lý ảnh AI siêu nhanh khi có request!
